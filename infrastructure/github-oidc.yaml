@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  One-time OIDC bootstrap for GitHub Actions CI/CD: registers GitHub's OIDC
+  identity provider with AWS and creates a deploy role trusted only for the
+  ronknighton/dea-insightflow repository. Deployed manually (same reasoning
+  as infrastructure/foundation.yaml) - nothing can assume this role until
+  the trust relationship itself exists, so the very first setup can't be
+  done by the pipeline it enables.
+
+Parameters:
+  GitHubOrg:
+    Type: String
+    Default: ronknighton
+    Description: GitHub username or org that owns the repository.
+  GitHubRepo:
+    Type: String
+    Default: dea-insightflow
+    Description: Repository name.
+  ProjectName:
+    Type: String
+    Default: insightflow
+    Description: Must match the prefix used in foundation.yaml.
+
+Resources:
+
+  # ---------------------------------------------------------------------------
+  # GitHub's OIDC provider. Thumbprints are GitHub's well-known, published
+  # values for token.actions.githubusercontent.com - not project-specific.
+  # ---------------------------------------------------------------------------
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+      ThumbprintList:
+        - 6938fd4d98bab03faadb97b34396831e3780aea1
+        - 1c58a3a8518e8759bf075b76b750d4f2df264fcd
+
+  # ---------------------------------------------------------------------------
+  # Deploy role - trust is scoped to this exact repo via the sub claim
+  # condition, not just to "any GitHub Actions token". Branch is unrestricted
+  # (ref:refs/heads/*) so both PR-triggered and main-branch runs can assume
+  # it; the workflow itself only calls deploy actions on the main-branch job.
+  # ---------------------------------------------------------------------------
+  GitHubActionsDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-github-actions-deploy-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOidcProvider
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              StringLike:
+                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubOrg}/${GitHubRepo}:*"
+      Policies:
+        - PolicyName: deploy-lambda-code
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: UpdateLambdaCode
+                Effect: Allow
+                Action:
+                  - lambda:UpdateFunctionCode
+                  - lambda:GetFunction
+                  - lambda:UpdateFunctionConfiguration
+                Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-*"
+              - Sid: DeployGlueScripts
+                Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource: !Sub "arn:aws:s3:::${ProjectName}-project-${AWS::AccountId}/glue-scripts/*"
+              - Sid: UpdateGlueJobs
+                Effect: Allow
+                Action:
+                  - glue:GetJob
+                  - glue:UpdateJob
+                Resource: !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:job/${ProjectName}-*"
+
+Outputs:
+  GitHubActionsDeployRoleArn:
+    Value: !GetAtt GitHubActionsDeployRole.Arn
+    Description: Set this as the role-to-assume in the GitHub Actions workflow.
