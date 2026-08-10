@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  InsightFlow Calendly webhook endpoint: Lambda function shell + HTTP API
+  (API Gateway v2) POST endpoint. Same pattern as crm-webhook-api.yaml -
+  imports role/bucket/secret from foundation.yaml, ships a placeholder
+  handler that the CI/CD deploy job replaces on the next merge to main.
+
+  Unlike the CRM flow, there is no delay queue here: Calendly bookings need
+  no lead-owner lookup, so this Lambda writes straight to raw/ with no
+  downstream consumer Lambda or SQS handoff.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: insightflow
+    Description: Must match the prefix used in foundation.yaml.
+
+Resources:
+
+  CalendlyWebhookFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-calendly_webhook_handler"
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !ImportValue
+        Fn::Sub: "${ProjectName}-calendly-webhook-lambda-role-arn"
+      Timeout: 10
+      MemorySize: 128
+      Environment:
+        Variables:
+          BUCKET_NAME: !ImportValue
+            Fn::Sub: "${ProjectName}-bucket-name"
+          SIGNING_SECRET_ARN: !ImportValue
+            Fn::Sub: "${ProjectName}-calendly-webhook-signing-secret-arn"
+      Code:
+        ZipFile: |
+          import json
+
+          def lambda_handler(event, context):
+              return {
+                  "statusCode": 500,
+                  "body": json.dumps({
+                      "error": "placeholder handler - real code not yet deployed"
+                  }),
+              }
+
+  CalendlyWebhookFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-calendly_webhook_handler"
+      RetentionInDays: 30
+
+  CalendlyWebhookHttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub "${ProjectName}-calendly-webhook-api"
+      ProtocolType: HTTP
+
+  CalendlyWebhookIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref CalendlyWebhookHttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt CalendlyWebhookFunction.Arn
+      PayloadFormatVersion: "2.0"
+
+  CalendlyWebhookRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref CalendlyWebhookHttpApi
+      RouteKey: "POST /webhook"
+      Target: !Sub "integrations/${CalendlyWebhookIntegration}"
+
+  CalendlyWebhookStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref CalendlyWebhookHttpApi
+      StageName: prod
+      AutoDeploy: true
+
+  CalendlyWebhookApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref CalendlyWebhookFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${CalendlyWebhookHttpApi}/*/*/webhook"
+
+Outputs:
+  CalendlyWebhookFunctionName:
+    Value: !Ref CalendlyWebhookFunction
+  CalendlyWebhookFunctionArn:
+    Value: !GetAtt CalendlyWebhookFunction.Arn
+  CalendlyWebhookEndpointUrl:
+    Description: The URL to hand to Avirup for the Calendly webhook subscription.
+    Value: !Sub "https://${CalendlyWebhookHttpApi}.execute-api.${AWS::Region}.amazonaws.com/prod/webhook"

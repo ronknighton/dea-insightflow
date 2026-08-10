@@ -25,6 +25,7 @@ jobs:
         # silently fail the whole matrix.
         lambda_dir:
           - crm_webhook_handler
+          - calendly_webhook_handler
     steps:
       - uses: actions/checkout@v4
 
@@ -58,6 +59,7 @@ jobs:
       matrix:
         lambda_dir:
           - crm_webhook_handler
+          - calendly_webhook_handler
     steps:
       - uses: actions/checkout@v4
 
