@@ -1,0 +1,427 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  InsightFlow foundation stack: S3 medallion bucket, SQS delay queue + DLQ for the CRM lead
+  flow, placeholder Secrets Manager secrets, and least-privilege IAM roles for every Lambda
+  and Glue component in the design (Sections 4-8 of the InsightFlow Solution Design doc).
+  Deployed manually (CLI/console) as a one-time bootstrap; not part of the GitHub Actions
+  pipeline, which covers Lambda/Glue code deploys only.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: insightflow
+    Description: Lowercase, used as a prefix for all resource names.
+
+Resources:
+
+  # ---------------------------------------------------------------------------
+  # S3 - single medallion bucket, prefix-partitioned (raw/ processed/ marts/)
+  # ---------------------------------------------------------------------------
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectName}-project-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Suspended
+
+  # ---------------------------------------------------------------------------
+  # SQS - CRM lead delay queue + DLQ (Section 6)
+  # ---------------------------------------------------------------------------
+  CrmLeadDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${ProjectName}-crm-lead-dlq"
+      MessageRetentionPeriod: 1209600 # 14 days, max - gives time to inspect failures
+
+  CrmLeadDelayQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${ProjectName}-crm-lead-delay-queue"
+      DelaySeconds: 0 # per-message DelaySeconds is set by the sender (600s), not the queue default
+      VisibilityTimeout: 120 # must exceed consumer Lambda's expected runtime
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt CrmLeadDLQ.Arn
+        maxReceiveCount: 3
+
+  CrmLeadDLQAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${ProjectName}-crm-lead-dlq-not-empty"
+      AlarmDescription: Fires when a CRM lead message lands in the DLQ after 3 failed processing attempts.
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt CrmLeadDLQ.QueueName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  # ---------------------------------------------------------------------------
+  # Secrets Manager - placeholders. Values are set post-deploy, never in this
+  # template or in code. Do not put real tokens/secrets in source control.
+  # ---------------------------------------------------------------------------
+  CrmWebhookSigningSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${ProjectName}/close-webhook-signing-secret"
+      Description: Close-Sig-Hash signing secret for validating inbound CRM webhook requests.
+      SecretString: "REPLACE_ME_AFTER_DEPLOY"
+
+  CalendlyWebhookSigningSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${ProjectName}/calendly-webhook-signing-secret"
+      Description: Calendly signing secret for validating inbound booking webhook requests.
+      SecretString: "REPLACE_ME_AFTER_DEPLOY"
+
+  WistiaApiToken:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${ProjectName}/wistia-api-token"
+      Description: Wistia Stats API token (Basic Auth).
+      SecretString: "REPLACE_ME_AFTER_DEPLOY"
+
+  # ---------------------------------------------------------------------------
+  # IAM - one role per component, scoped to only the prefixes/resources it
+  # actually touches. No role gets bucket-wide access.
+  # ---------------------------------------------------------------------------
+
+  # 1. CRM webhook Lambda: API Gateway -> Lambda. Writes raw/crm_events/,
+  #    sends the delayed message, reads its own signing secret.
+  CrmWebhookLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-crm-webhook-lambda-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: crm-webhook-lambda-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: WriteRawCrmEvents
+                Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub "${DataBucket.Arn}/raw/crm_events/*"
+              - Sid: SendDelayedMessage
+                Effect: Allow
+                Action: sqs:SendMessage
+                Resource: !GetAtt CrmLeadDelayQueue.Arn
+              - Sid: ReadOwnSigningSecret
+                Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref CrmWebhookSigningSecret
+              - Sid: WriteLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-crm-webhook*"
+
+  # 2. CRM consumer Lambda: triggered by the delay queue after 10 min.
+  #    Reads raw event, writes enriched Parquet. Lookup bucket is public/
+  #    anonymous, so no IAM permission is needed for it.
+  CrmConsumerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-crm-consumer-lambda-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: crm-consumer-lambda-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ConsumeDelayQueue
+                Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !GetAtt CrmLeadDelayQueue.Arn
+              - Sid: ReadRawCrmEvent
+                Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub "${DataBucket.Arn}/raw/crm_events/*"
+              - Sid: ReadProcessedForIdempotencyCheck
+                Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub "${DataBucket.Arn}/processed/crm_leads_enriched/*"
+              - Sid: WriteProcessedCrmLeads
+                Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub "${DataBucket.Arn}/processed/crm_leads_enriched/*"
+              - Sid: WriteLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-crm-consumer*"
+
+  # 3. Calendly webhook Lambda: writes raw booking events, reads its own secret.
+  CalendlyWebhookLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-calendly-webhook-lambda-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: calendly-webhook-lambda-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: WriteRawCalendlyEvents
+                Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub "${DataBucket.Arn}/raw/calendly_webhook_events/*"
+              - Sid: ReadOwnSigningSecret
+                Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref CalendlyWebhookSigningSecret
+              - Sid: WriteLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-calendly-webhook*"
+
+  # 4. Calendly spend Lambda: EventBridge-scheduled daily pull of the public
+  #    spend file. Source is a public URL, so no IAM permission needed for it.
+  CalendlySpendLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-calendly-spend-lambda-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: calendly-spend-lambda-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: WriteRawCalendlySpend
+                Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub "${DataBucket.Arn}/raw/calendly_spend/*"
+              - Sid: WriteLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-calendly-spend*"
+
+  # 5. Wistia Lambda: EventBridge-scheduled pull. Reads/writes its own SSM
+  #    watermark parameter, reads its API token, writes raw Wistia stats.
+  WistiaLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-wistia-lambda-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: wistia-lambda-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: WriteRawWistiaStats
+                Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub "${DataBucket.Arn}/raw/wistia_stats/*"
+              - Sid: ReadWriteWatermark
+                Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                  - ssm:PutParameter
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${ProjectName}/wistia/watermark"
+              - Sid: ReadApiToken
+                Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref WistiaApiToken
+              - Sid: WriteLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-wistia*"
+
+  # 6. Glue transform job: reads raw/, writes processed/ only. Does not
+  #    touch marts/ - that's written by Athena CTAS, not Glue.
+  GlueTransformRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-glue-transform-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: glue.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: glue-transform-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ListBucketForRawAndProcessed
+                Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt DataBucket.Arn
+                Condition:
+                  StringLike:
+                    s3:prefix:
+                      - "raw/*"
+                      - "processed/*"
+              - Sid: ReadRaw
+                Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub "${DataBucket.Arn}/raw/*"
+              - Sid: WriteProcessed
+                Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Sub "${DataBucket.Arn}/processed/*"
+              - Sid: GlueCatalogAccess
+                Effect: Allow
+                Action:
+                  - glue:GetDatabase
+                  - glue:GetTable
+                  - glue:GetTables
+                  - glue:CreateTable
+                  - glue:UpdateTable
+                  - glue:BatchCreatePartition
+                Resource:
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:catalog"
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/${ProjectName}*"
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:table/${ProjectName}*/*"
+              - Sid: WriteLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws-glue/*"
+
+  # 7. Glue crawler: read-only across all three layers, to register schema.
+  GlueCrawlerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-glue-crawler-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: glue.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: glue-crawler-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ListBucketAllLayers
+                Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt DataBucket.Arn
+                Condition:
+                  StringLike:
+                    s3:prefix:
+                      - "raw/*"
+                      - "processed/*"
+                      - "marts/*"
+              - Sid: ReadAllLayers
+                Effect: Allow
+                Action: s3:GetObject
+                Resource:
+                  - !Sub "${DataBucket.Arn}/raw/*"
+                  - !Sub "${DataBucket.Arn}/processed/*"
+                  - !Sub "${DataBucket.Arn}/marts/*"
+              - Sid: GlueCatalogWrite
+                Effect: Allow
+                Action:
+                  - glue:GetDatabase
+                  - glue:CreateDatabase
+                  - glue:GetTable
+                  - glue:GetTables
+                  - glue:CreateTable
+                  - glue:UpdateTable
+                  - glue:BatchCreatePartition
+                  - glue:BatchGetPartition
+                Resource:
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:catalog"
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/${ProjectName}*"
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:table/${ProjectName}*/*"
+              - Sid: WriteLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws-glue/*"
+
+Outputs:
+  BucketName:
+    Value: !Ref DataBucket
+  BucketArn:
+    Value: !GetAtt DataBucket.Arn
+  CrmLeadDelayQueueUrl:
+    Value: !Ref CrmLeadDelayQueue
+  CrmLeadDelayQueueArn:
+    Value: !GetAtt CrmLeadDelayQueue.Arn
+  CrmLeadDLQUrl:
+    Value: !Ref CrmLeadDLQ
+  CrmWebhookLambdaRoleArn:
+    Value: !GetAtt CrmWebhookLambdaRole.Arn
+  CrmConsumerLambdaRoleArn:
+    Value: !GetAtt CrmConsumerLambdaRole.Arn
+  CalendlyWebhookLambdaRoleArn:
+    Value: !GetAtt CalendlyWebhookLambdaRole.Arn
+  CalendlySpendLambdaRoleArn:
+    Value: !GetAtt CalendlySpendLambdaRole.Arn
+  WistiaLambdaRoleArn:
+    Value: !GetAtt WistiaLambdaRole.Arn
+  GlueTransformRoleArn:
+    Value: !GetAtt GlueTransformRole.Arn
+  GlueCrawlerRoleArn:
+    Value: !GetAtt GlueCrawlerRole.Arn
+  CrmWebhookSigningSecretArn:
+    Value: !Ref CrmWebhookSigningSecret
+  CalendlyWebhookSigningSecretArn:
+    Value: !Ref CalendlyWebhookSigningSecret
+  WistiaApiTokenSecretArn:
+    Value: !Ref WistiaApiToken
