@@ -30,7 +30,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.9" # matches local dev environment
+          python-version: "3.12" # matches the deployed Lambda runtime (infrastructure/crm-webhook-api.yaml)
 
       - name: Install dependencies
         working-directory: lambdas/${{ matrix.lambda_dir }}

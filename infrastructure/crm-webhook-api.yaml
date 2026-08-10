@@ -1,0 +1,112 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  InsightFlow CRM webhook endpoint: the Lambda function shell + an HTTP API
+  (API Gateway v2) POST endpoint in front of it. Imports the IAM role, bucket,
+  and queue from infrastructure/foundation.yaml via cross-stack Fn::ImportValue
+  rather than re-declaring or hardcoding them.
+
+  The function is created here with a placeholder inline handler - not the
+  real code from lambdas/crm_webhook_handler/lambda_function.py. That's
+  intentional: the GitHub Actions deploy job (.github/workflows/ci-cd.yml)
+  already checks whether a function named insightflow-crm_webhook_handler
+  exists and, if so, updates its code on every merge to main. Once this
+  stack creates the function shell, the very next merge to main will push
+  the real handler code automatically - no manual `aws lambda
+  update-function-code` needed as a one-off step.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: insightflow
+    Description: Must match the prefix used in foundation.yaml.
+
+Resources:
+
+  CrmWebhookFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-crm_webhook_handler"
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !ImportValue
+        Fn::Sub: "${ProjectName}-crm-webhook-lambda-role-arn"
+      Timeout: 10
+      MemorySize: 128
+      Environment:
+        Variables:
+          BUCKET_NAME: !ImportValue
+            Fn::Sub: "${ProjectName}-bucket-name"
+          DELAY_QUEUE_URL: !ImportValue
+            Fn::Sub: "${ProjectName}-crm-delay-queue-url"
+          SIGNING_SECRET_ARN: !ImportValue
+            Fn::Sub: "${ProjectName}-crm-webhook-signing-secret-arn"
+      Code:
+        # Placeholder only - see description above. Returns 500 so a webhook
+        # delivered before the first real deploy fails loudly (and Close
+        # retries) rather than silently succeeding with no data written.
+        ZipFile: |
+          import json
+
+          def lambda_handler(event, context):
+              return {
+                  "statusCode": 500,
+                  "body": json.dumps({
+                      "error": "placeholder handler - real code not yet deployed"
+                  }),
+              }
+
+  CrmWebhookFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-crm_webhook_handler"
+      RetentionInDays: 30
+
+  # ---------------------------------------------------------------------------
+  # HTTP API (API Gateway v2) - simpler and cheaper than a REST API for a
+  # single POST-and-proxy-to-Lambda endpoint; no separate Deployment/Resource
+  # resources needed, just the API, one route, and one integration.
+  # ---------------------------------------------------------------------------
+  CrmWebhookHttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub "${ProjectName}-crm-webhook-api"
+      ProtocolType: HTTP
+
+  CrmWebhookIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref CrmWebhookHttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt CrmWebhookFunction.Arn
+      PayloadFormatVersion: "2.0"
+
+  CrmWebhookRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref CrmWebhookHttpApi
+      RouteKey: "POST /webhook"
+      Target: !Sub "integrations/${CrmWebhookIntegration}"
+
+  CrmWebhookStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref CrmWebhookHttpApi
+      StageName: prod
+      AutoDeploy: true
+
+  CrmWebhookApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref CrmWebhookFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${CrmWebhookHttpApi}/*/*/webhook"
+
+Outputs:
+  CrmWebhookFunctionName:
+    Value: !Ref CrmWebhookFunction
+  CrmWebhookFunctionArn:
+    Value: !GetAtt CrmWebhookFunction.Arn
+  CrmWebhookEndpointUrl:
+    Description: The URL to hand to Avirup for the Close webhook subscription.
+    Value: !Sub "https://${CrmWebhookHttpApi}.execute-api.${AWS::Region}.amazonaws.com/prod/webhook"

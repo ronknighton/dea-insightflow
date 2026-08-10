@@ -397,31 +397,46 @@ Resources:
 Outputs:
   BucketName:
     Value: !Ref DataBucket
+    Export: { Name: !Sub "${ProjectName}-bucket-name" }
   BucketArn:
     Value: !GetAtt DataBucket.Arn
+    Export: { Name: !Sub "${ProjectName}-bucket-arn" }
   CrmLeadDelayQueueUrl:
     Value: !Ref CrmLeadDelayQueue
+    Export: { Name: !Sub "${ProjectName}-crm-delay-queue-url" }
   CrmLeadDelayQueueArn:
     Value: !GetAtt CrmLeadDelayQueue.Arn
+    Export: { Name: !Sub "${ProjectName}-crm-delay-queue-arn" }
   CrmLeadDLQUrl:
     Value: !Ref CrmLeadDLQ
+    Export: { Name: !Sub "${ProjectName}-crm-dlq-url" }
   CrmWebhookLambdaRoleArn:
     Value: !GetAtt CrmWebhookLambdaRole.Arn
+    Export: { Name: !Sub "${ProjectName}-crm-webhook-lambda-role-arn" }
   CrmConsumerLambdaRoleArn:
     Value: !GetAtt CrmConsumerLambdaRole.Arn
+    Export: { Name: !Sub "${ProjectName}-crm-consumer-lambda-role-arn" }
   CalendlyWebhookLambdaRoleArn:
     Value: !GetAtt CalendlyWebhookLambdaRole.Arn
+    Export: { Name: !Sub "${ProjectName}-calendly-webhook-lambda-role-arn" }
   CalendlySpendLambdaRoleArn:
     Value: !GetAtt CalendlySpendLambdaRole.Arn
+    Export: { Name: !Sub "${ProjectName}-calendly-spend-lambda-role-arn" }
   WistiaLambdaRoleArn:
     Value: !GetAtt WistiaLambdaRole.Arn
+    Export: { Name: !Sub "${ProjectName}-wistia-lambda-role-arn" }
   GlueTransformRoleArn:
     Value: !GetAtt GlueTransformRole.Arn
+    Export: { Name: !Sub "${ProjectName}-glue-transform-role-arn" }
   GlueCrawlerRoleArn:
     Value: !GetAtt GlueCrawlerRole.Arn
+    Export: { Name: !Sub "${ProjectName}-glue-crawler-role-arn" }
   CrmWebhookSigningSecretArn:
     Value: !Ref CrmWebhookSigningSecret
+    Export: { Name: !Sub "${ProjectName}-crm-webhook-signing-secret-arn" }
   CalendlyWebhookSigningSecretArn:
     Value: !Ref CalendlyWebhookSigningSecret
+    Export: { Name: !Sub "${ProjectName}-calendly-webhook-signing-secret-arn" }
   WistiaApiTokenSecretArn:
     Value: !Ref WistiaApiToken
+    Export: { Name: !Sub "${ProjectName}-wistia-api-token-secret-arn" }
