@@ -1,11 +1,10 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >
-  One-time OIDC bootstrap for GitHub Actions CI/CD: registers GitHub's OIDC
-  identity provider with AWS and creates a deploy role trusted only for the
-  ronknighton/dea-insightflow repository. Deployed manually (same reasoning
-  as infrastructure/foundation.yaml) - nothing can assume this role until
-  the trust relationship itself exists, so the very first setup can't be
-  done by the pipeline it enables.
+  GitHub Actions deploy role for InsightFlow: creates a repo-scoped IAM role
+  trusted via OIDC, using the GitHub OIDC provider already registered in this
+  AWS account (by the Global Partners capstone). Deployed manually - see
+  infrastructure/foundation.yaml for why the first deploy of anything OIDC-
+  related can't itself go through GitHub Actions.
 
 Parameters:
   GitHubOrg:
@@ -16,6 +15,14 @@ Parameters:
     Type: String
     Default: dea-insightflow
     Description: Repository name.
+  GitHubOwnerId:
+    Type: String
+    Default: "28845975"
+    Description: Numeric GitHub owner ID (immutable subject claim format, repos created after July 15, 2026).
+  GitHubRepoId:
+    Type: String
+    Default: "1329863690"
+    Description: Numeric GitHub repository ID (immutable subject claim format).
   ProjectName:
     Type: String
     Default: insightflow
@@ -24,18 +31,13 @@ Parameters:
 Resources:
 
   # ---------------------------------------------------------------------------
-  # GitHub's OIDC provider. Thumbprints are GitHub's well-known, published
-  # values for token.actions.githubusercontent.com - not project-specific.
+  # NOTE: the GitHub OIDC provider itself is NOT created here. It's a
+  # singleton per AWS account (one provider per URL, account-wide) - the
+  # Global Partners capstone already registered it. Re-declaring it here
+  # fails with AlreadyExists, which is expected and correct: multiple
+  # projects are meant to share the one provider registration while each
+  # gets its own narrowly-trusted role below.
   # ---------------------------------------------------------------------------
-  GitHubOidcProvider:
-    Type: AWS::IAM::OIDCProvider
-    Properties:
-      Url: https://token.actions.githubusercontent.com
-      ClientIdList:
-        - sts.amazonaws.com
-      ThumbprintList:
-        - 6938fd4d98bab03faadb97b34396831e3780aea1
-        - 1c58a3a8518e8759bf075b76b750d4f2df264fcd
 
   # ---------------------------------------------------------------------------
   # Deploy role - trust is scoped to this exact repo via the sub claim
@@ -52,13 +54,19 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Federated: !Ref GitHubOidcProvider
+              Federated: !Sub "arn:aws:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com"
             Action: sts:AssumeRoleWithWebIdentity
             Condition:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
-              StringLike:
-                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubOrg}/${GitHubRepo}:*"
+                # Immutable subject claim format (GitHub, July 15 2026+): the sub
+                # embeds numeric owner/repo IDs, not just mutable names, so a
+                # recycled username/repo name can't inherit this trust. Pinned to
+                # the main branch specifically - the deploy job (the only step
+                # that assumes this role) only ever runs on pushes to main, so
+                # nothing broader is needed. Widen to :* if a workflow_dispatch
+                # or other-branch deploy path is added later.
+                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubOrg}@${GitHubOwnerId}/${GitHubRepo}@${GitHubRepoId}:ref:refs/heads/main"
       Policies:
         - PolicyName: deploy-lambda-code
           PolicyDocument:
