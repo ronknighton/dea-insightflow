@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-08-08T00:00:00.000Z" agent="Claude" version="24.0.0" type="device">
+  <diagram name="InsightFlow Architecture" id="insightflow-arch">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Swimlane headers -->
+        <mxCell id="lane_sources" value="Sources" style="text;html=1;align=center;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_ingest" value="Ingestion" style="text;html=1;align=center;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="260" y="20" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_raw" value="S3 raw/" style="text;html=1;align=center;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="580" y="20" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_orch" value="Orchestration / Enrichment" style="text;html=1;align=center;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="800" y="20" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_processed" value="S3 processed/ (Glue)" style="text;html=1;align=center;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="20" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_marts" value="Athena CTAS marts/" style="text;html=1;align=center;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1340" y="20" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_serve" value="Serve / Notify" style="text;html=1;align=center;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1560" y="20" width="140" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Sources -->
+        <mxCell id="src_crm" value="Close CRM&#10;(webhook)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="30" y="90" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="src_calendly" value="Calendly&#10;(webhook: invitee.created)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="30" y="200" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="src_calendly_spend" value="Calendly Spend&#10;(daily public S3 file, ~06:00 EST)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="30" y="310" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="src_wistia" value="Wistia Stats API&#10;(2 media IDs, token auth)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="30" y="420" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Ingestion -->
+        <mxCell id="ing_crm" value="API Gateway (POST)&#10;+ Lambda&#10;(validate signature)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="280" y="90" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ing_calendly" value="API Gateway (POST)&#10;+ Lambda&#10;(filter event_types)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="280" y="200" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ing_spend" value="EventBridge Scheduler&#10;+ Lambda&#10;(daily pull, retry-aware)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="280" y="310" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ing_wistia" value="EventBridge Scheduler&#10;+ Lambda&#10;(paginated, incremental)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="280" y="420" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ssm" value="SSM Parameter Store&#10;(Wistia watermark)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="500" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="secrets" value="Secrets Manager&#10;(Wistia token, webhook signing secrets)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="600" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Raw -->
+        <mxCell id="raw_crm" value="raw/crm_events/&#10;crm_event_{lead_id}.json" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="590" y="90" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="raw_calendly" value="raw/calendly_webhook_events/" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="590" y="200" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="raw_spend" value="raw/calendly_spend/" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="590" y="310" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="raw_wistia" value="raw/wistia_stats/" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="590" y="420" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Orchestration -->
+        <mxCell id="sqs_delay" value="SQS delay queue&#10;DelaySeconds=600 (10 min)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="810" y="90" width="230" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="consumer_lambda" value="Consumer Lambda&#10;lookup + merge + notify (idempotent)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="810" y="150" width="230" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="dlq" value="Dead-letter queue&#10;(3 failed attempts, CloudWatch alarm)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="810" y="210" width="230" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="public_bucket" value="Public S3: dea-lead-owner&#10;(anonymous read, T-1 data)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="810" y="270" width="230" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="glue_crawler" value="Glue Data Catalog&#10;+ Crawlers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="810" y="420" width="230" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Processed -->
+        <mxCell id="proc_crm" value="processed/&#10;crm_leads_enriched/" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="90" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_calendly" value="processed/&#10;calendly_bookings/ + calendly_spend/" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="230" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_wistia" value="processed/&#10;wistia_engagement/" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="420" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="glue_job" value="Glue Python Shell (pandas)&#10;clean, standardize, join" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="320" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Marts -->
+        <mxCell id="marts" value="marts/&#10;daily bookings, CPB by channel,&#10;bookings trend, channel attribution,&#10;time-slot volume, meeting load,&#10;channel_performance_summary&#10;(channel+date grain, not person-level)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1340" y="220" width="190" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Serve -->
+        <mxCell id="quicksight" value="QuickSight&#10;dashboards" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="1570" y="240" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="slack" value="Slack&#10;New Lead Alert" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="1570" y="90" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Edges: Sources -> Ingestion -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="src_crm" target="ing_crm"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="src_calendly" target="ing_calendly"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="src_calendly_spend" target="ing_spend"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="src_wistia" target="ing_wistia"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Ingestion -> Raw -->
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="ing_crm" target="raw_crm"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="ing_calendly" target="raw_calendly"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="ing_spend" target="raw_spend"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="ing_wistia" target="raw_wistia"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_ssm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;" edge="1" parent="1" source="ssm" target="ing_wistia"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_secrets1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;" edge="1" parent="1" source="secrets" target="ing_wistia"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_secrets2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;" edge="1" parent="1" source="secrets" target="ing_crm"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Raw CRM -> Step Functions -> processed -->
+        <mxCell id="e9" value="send delayed msg" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="ing_crm" target="sqs_delay"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9b" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="sqs_delay" target="consumer_lambda"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="public_bucket" target="consumer_lambda"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="consumer_lambda" target="proc_crm"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e12" value="notify" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="consumer_lambda" target="slack"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_dlq" value="3 failed attempts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#A32D2D;" edge="1" parent="1" source="consumer_lambda" target="dlq"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Raw Calendly/Wistia -> Glue -> processed -->
+        <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="raw_calendly" target="glue_job"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="raw_spend" target="glue_job"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="raw_wistia" target="glue_job"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="glue_job" target="proc_calendly"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="glue_job" target="proc_wistia"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_crawler" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;" edge="1" parent="1" source="glue_crawler" target="glue_job"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Processed -> Marts -->
+        <mxCell id="e18" value="Athena CTAS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="proc_crm" target="marts"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="proc_calendly" target="marts"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="proc_wistia" target="marts"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Marts -> QuickSight -->
+        <mxCell id="e21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="marts" target="quicksight"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend_title" value="Legend" style="text;html=1;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="30" y="700" width="120" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend1" value="External source / consumer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="30" y="725" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend2" value="Compute (Lambda / EventBridge)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="250" y="725" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend3" value="S3 storage layer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="470" y="725" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend4" value="Delay queue / transform (SQS, Glue)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="690" y="725" width="240" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend5" value="Config / secrets (dashed = supporting)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="950" y="725" width="240" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend6" value="Public / external bucket" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="725" width="200" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
