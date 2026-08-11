@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  InsightFlow Wistia Lambda: pulls media engagement snapshots and
+  incremental visitor-level events for the two tracked media IDs, on a
+  recurring EventBridge Scheduler cadence. Same placeholder-first pattern
+  as the other Lambdas - ships a stub, real code lands on the next merge
+  to main via the CI/CD deploy job.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: insightflow
+    Description: Must match the prefix used in foundation.yaml.
+
+Resources:
+
+  WistiaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-wistia_handler"
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !ImportValue
+        Fn::Sub: "${ProjectName}-wistia-lambda-role-arn"
+      Timeout: 60 # highest of any Lambda so far - up to 2 media IDs x up to 10 pages each
+      MemorySize: 128
+      Environment:
+        Variables:
+          BUCKET_NAME: !ImportValue
+            Fn::Sub: "${ProjectName}-bucket-name"
+          WISTIA_TOKEN_ARN: !ImportValue
+            Fn::Sub: "${ProjectName}-wistia-api-token-secret-arn"
+          PROJECT_NAME: !Ref ProjectName
+          MEDIA_IDS: "8hunphufxp,9k4tbcdfg0"
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {"results": [], "note": "placeholder - real code not yet deployed"}
+
+  WistiaFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-wistia_handler"
+      RetentionInDays: 30
+
+  SchedulerInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-wistia-scheduler-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: scheduler.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: invoke-wistia-function
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt WistiaFunction.Arn
+
+  # Runs every 6 hours - Wistia engagement data has no urgent freshness
+  # requirement like Calendly's spend-file publish window does, so a
+  # simpler fixed-interval schedule is used rather than a bounded window.
+  WistiaSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: !Sub "${ProjectName}-wistia-schedule"
+      ScheduleExpression: "rate(6 hours)"
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Target:
+        Arn: !GetAtt WistiaFunction.Arn
+        RoleArn: !GetAtt SchedulerInvokeRole.Arn
+
+Outputs:
+  WistiaFunctionName:
+    Value: !Ref WistiaFunction
+  WistiaFunctionArn:
+    Value: !GetAtt WistiaFunction.Arn
