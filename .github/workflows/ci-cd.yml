@@ -27,6 +27,8 @@ jobs:
           - crm_webhook_handler
           - calendly_webhook_handler
           - crm_consumer_handler
+          - calendly_spend_handler
+          - wistia_handler
     steps:
       - uses: actions/checkout@v4
 
@@ -66,6 +68,8 @@ jobs:
           - crm_webhook_handler
           - calendly_webhook_handler
           - crm_consumer_handler
+          - calendly_spend_handler
+          - wistia_handler
     steps:
       - uses: actions/checkout@v4
 

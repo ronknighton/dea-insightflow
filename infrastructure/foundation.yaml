@@ -145,7 +145,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-crm-webhook*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-crm_webhook_handler*"
 
   # 2. CRM consumer Lambda: triggered by the delay queue after 10 min.
   #    Reads raw event, writes enriched Parquet. Lookup bucket is public/
@@ -176,6 +176,13 @@ Resources:
                 Effect: Allow
                 Action: s3:GetObject
                 Resource: !Sub "${DataBucket.Arn}/raw/crm_events/*"
+              - Sid: ListBucketForIdempotencyCheck
+                Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt DataBucket.Arn
+                Condition:
+                  StringLike:
+                    s3:prefix: "processed/crm_leads_enriched/*"
               - Sid: ReadProcessedForIdempotencyCheck
                 Effect: Allow
                 Action: s3:GetObject
@@ -194,7 +201,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-crm-consumer*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-crm_consumer_handler*"
 
   # 3. Calendly webhook Lambda: writes raw booking events, reads its own secret.
   CalendlyWebhookLambdaRole:
@@ -226,7 +233,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-calendly-webhook*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-calendly_webhook_handler*"
 
   # 4. Calendly spend Lambda: EventBridge-scheduled daily pull of the public
   #    spend file. Source is a public URL, so no IAM permission needed for it.
@@ -249,13 +256,24 @@ Resources:
                 Effect: Allow
                 Action: s3:PutObject
                 Resource: !Sub "${DataBucket.Arn}/raw/calendly_spend/*"
+              - Sid: ListBucketForIdempotencyCheck
+                Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt DataBucket.Arn
+                Condition:
+                  StringLike:
+                    s3:prefix: "raw/calendly_spend/*"
+              - Sid: ReadRawCalendlySpendForIdempotencyCheck
+                Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub "${DataBucket.Arn}/raw/calendly_spend/*"
               - Sid: WriteLogs
                 Effect: Allow
                 Action:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-calendly-spend*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-calendly_spend_handler*"
 
   # 5. Wistia Lambda: EventBridge-scheduled pull. Reads/writes its own SSM
   #    watermark parameter, reads its API token, writes raw Wistia stats.
@@ -283,7 +301,7 @@ Resources:
                 Action:
                   - ssm:GetParameter
                   - ssm:PutParameter
-                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${ProjectName}/wistia/watermark"
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${ProjectName}/wistia/watermark/*"
               - Sid: ReadApiToken
                 Effect: Allow
                 Action: secretsmanager:GetSecretValue
