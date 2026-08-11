@@ -94,6 +94,17 @@ Resources:
       Description: Wistia Stats API token (Basic Auth).
       SecretString: "REPLACE_ME_AFTER_DEPLOY"
 
+  SlackWebhookUrl:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${ProjectName}/slack-webhook-url"
+      Description: >
+        Incoming webhook URL for CRM lead notifications. Personal Slack
+        workspace for now - see Section 14, Item 6 of the design doc for
+        the open question on whether this should move to the shared DEA
+        workspace instead. Swapping the URL here requires no code change.
+      SecretString: "REPLACE_ME_AFTER_DEPLOY"
+
   # ---------------------------------------------------------------------------
   # IAM - one role per component, scoped to only the prefixes/resources it
   # actually touches. No role gets bucket-wide access.
@@ -173,6 +184,10 @@ Resources:
                 Effect: Allow
                 Action: s3:PutObject
                 Resource: !Sub "${DataBucket.Arn}/processed/crm_leads_enriched/*"
+              - Sid: ReadSlackWebhookSecret
+                Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref SlackWebhookUrl
               - Sid: WriteLogs
                 Effect: Allow
                 Action:
@@ -440,3 +455,6 @@ Outputs:
   WistiaApiTokenSecretArn:
     Value: !Ref WistiaApiToken
     Export: { Name: !Sub "${ProjectName}-wistia-api-token-secret-arn" }
+  SlackWebhookUrlSecretArn:
+    Value: !Ref SlackWebhookUrl
+    Export: { Name: !Sub "${ProjectName}-slack-webhook-url-secret-arn" }

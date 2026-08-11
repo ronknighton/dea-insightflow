@@ -26,6 +26,7 @@ jobs:
         lambda_dir:
           - crm_webhook_handler
           - calendly_webhook_handler
+          - crm_consumer_handler
     steps:
       - uses: actions/checkout@v4
 
@@ -37,7 +38,11 @@ jobs:
         working-directory: lambdas/${{ matrix.lambda_dir }}
         run: |
           python -m pip install --upgrade pip
-          pip install boto3 pytest
+          # pandas/awswrangler only needed by crm_consumer_handler (provided
+          # via the AWSSDKPandas Lambda layer at runtime, not this zip) -
+          # installed for every lambda_dir here anyway, simpler than a
+          # per-matrix conditional and harmless for the others.
+          pip install boto3 pytest pandas awswrangler
 
       - name: Syntax check
         working-directory: lambdas/${{ matrix.lambda_dir }}
@@ -60,6 +65,7 @@ jobs:
         lambda_dir:
           - crm_webhook_handler
           - calendly_webhook_handler
+          - crm_consumer_handler
     steps:
       - uses: actions/checkout@v4
 
