@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  InsightFlow CRM consumer Lambda: triggered by the SQS delay queue
+  (foundation.yaml) once the 10-minute delay elapses. Same placeholder-first
+  pattern as the webhook Lambdas - ships a stub, real code lands on the next
+  merge to main via the CI/CD deploy job.
+
+  Requires the AWSSDKPandas managed Lambda layer (for awswrangler/pandas -
+  not bundled in the deploy zip, since it's a large dependency AWS already
+  publishes as a maintained layer). AWSSDKPandasLayerArn has no default:
+  look up the current version for this region/runtime in the Lambda
+  console's "Add a layer" -> "AWS layers" picker (search "AWSSDKPandas"),
+  or https://aws-sdk-pandas.readthedocs.io/en/stable/layers.html, and pass
+  it as a parameter at deploy time - hardcoding a version number here risks
+  it being stale or unavailable in this region by the time this is read.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: insightflow
+    Description: Must match the prefix used in foundation.yaml.
+  AWSSDKPandasLayerArn:
+    Type: String
+    Description: >
+      Full ARN of the AWSSDKPandas-Python312 managed layer for this region,
+      e.g. arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python312:<version>.
+      No default on purpose - see template description.
+  LeadOwnerBaseUrl:
+    Type: String
+    Default: "https://dea-lead-owner.s3.amazonaws.com"
+    Description: >
+      ASSUMPTION FLAGGED (see lambda_function.py docstring) - verify this
+      matches the actual public_url pattern in the requirements doc before
+      the 7-day operational window begins.
+
+Resources:
+
+  CrmConsumerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-crm_consumer_handler"
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !ImportValue
+        Fn::Sub: "${ProjectName}-crm-consumer-lambda-role-arn"
+      Timeout: 30 # higher than the webhook Lambdas - this one does a lookup + Parquet write + Slack call
+      MemorySize: 256 # awswrangler/pandas need more headroom than the 128MB webhook functions
+      Layers:
+        - !Ref AWSSDKPandasLayerArn
+      Environment:
+        Variables:
+          BUCKET_NAME: !ImportValue
+            Fn::Sub: "${ProjectName}-bucket-name"
+          LEAD_OWNER_BASE_URL: !Ref LeadOwnerBaseUrl
+          SLACK_WEBHOOK_SECRET_ARN: !ImportValue
+            Fn::Sub: "${ProjectName}-slack-webhook-url-secret-arn"
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              # Placeholder - real code deploys on the next merge to main.
+              return {"batchItemFailures": []}
+
+  CrmConsumerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-crm_consumer_handler"
+      RetentionInDays: 30
+
+  # ---------------------------------------------------------------------------
+  # Wires the delay queue (created in foundation.yaml) to this function.
+  # BatchSize=1 keeps failure isolation simple - one bad message can't block
+  # or fail a batch containing other, unrelated leads.
+  # ---------------------------------------------------------------------------
+  CrmConsumerEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !ImportValue
+        Fn::Sub: "${ProjectName}-crm-delay-queue-arn"
+      FunctionName: !Ref CrmConsumerFunction
+      BatchSize: 1
+      FunctionResponseTypes:
+        - ReportBatchItemFailures
+
+Outputs:
+  CrmConsumerFunctionName:
+    Value: !Ref CrmConsumerFunction
+  CrmConsumerFunctionArn:
+    Value: !GetAtt CrmConsumerFunction.Arn
