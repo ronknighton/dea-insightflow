@@ -23,13 +23,15 @@ Solution Design doc:
      an untouched mirror of the source, consistent with every other
      ingestion Lambda in this pipeline.
 
-ASSUMPTION FLAGGED: the exact base URL and file_index.json structure were
-not confirmed against the requirements doc's literal example at the time
-this was written (same category of gap as CRM consumer's
-LEAD_OWNER_BASE_URL). CALENDLY_SPEND_BASE_URL and the index-parsing logic
-in _is_file_available() are environment-variable-driven and isolated in
-one function specifically so this can be corrected without touching
-anything else, once verified against a real sample.
+CALENDLY_SPEND_BASE_URL default is confirmed directly from the requirements
+doc's own examples: https://dea-data-bucket.s3.us-east-1.amazonaws.com/
+calendly_spend_data/spend_data_YYYY-MM-DD.json and .../file_index.json in
+the same prefix. The earlier default here guessed a dedicated
+"dea-calendly-spend" bucket, which does not exist - the real bucket is
+dea-data-bucket with a calendly_spend_data/ folder. The file_index.json
+structure itself is still unconfirmed (bare list vs. {"files": [...]}),
+so _is_file_available() keeps handling both - that part remains worth
+verifying against a real pull.
 
 Environment variables:
   BUCKET_NAME               - InsightFlow data bucket
@@ -53,7 +55,7 @@ s3_client = boto3.client("s3")
 
 BUCKET_NAME = os.environ.get("BUCKET_NAME")
 CALENDLY_SPEND_BASE_URL = os.environ.get(
-    "CALENDLY_SPEND_BASE_URL", "https://dea-calendly-spend.s3.amazonaws.com"
+    "CALENDLY_SPEND_BASE_URL", "https://dea-data-bucket.s3.us-east-1.amazonaws.com/calendly_spend_data"
 )
 
 
