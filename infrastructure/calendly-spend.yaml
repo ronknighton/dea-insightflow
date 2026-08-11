@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  InsightFlow Calendly spend Lambda: pulls the previous day's ad-spend file
+  on a recurring EventBridge Scheduler cadence. Same placeholder-first
+  pattern as the other Lambdas - ships a stub, real code lands on the next
+  merge to main via the CI/CD deploy job.
+
+  No API Gateway here (unlike the webhook Lambdas) - this is a scheduled
+  pull, not an inbound endpoint.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: insightflow
+    Description: Must match the prefix used in foundation.yaml.
+
+Resources:
+
+  CalendlySpendFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-calendly_spend_handler"
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !ImportValue
+        Fn::Sub: "${ProjectName}-calendly-spend-lambda-role-arn"
+      Timeout: 15
+      MemorySize: 128
+      Environment:
+        Variables:
+          BUCKET_NAME: !ImportValue
+            Fn::Sub: "${ProjectName}-bucket-name"
+          # ASSUMPTION FLAGGED (see lambda_function.py docstring) - verify
+          # against the requirements doc's actual public_url pattern before
+          # the 7-day operational window begins.
+          CALENDLY_SPEND_BASE_URL: "https://dea-calendly-spend.s3.amazonaws.com"
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {"status": "placeholder - real code not yet deployed"}
+
+  CalendlySpendFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-calendly_spend_handler"
+      RetentionInDays: 30
+
+  # ---------------------------------------------------------------------------
+  # EventBridge Scheduler needs its own role to invoke the Lambda target -
+  # distinct from the Lambda's own execution role (that role governs what
+  # the function can do once running; this one governs who's allowed to
+  # start it).
+  # ---------------------------------------------------------------------------
+  SchedulerInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-calendly-spend-scheduler-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: scheduler.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: invoke-calendly-spend-function
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt CalendlySpendFunction.Arn
+
+  # ---------------------------------------------------------------------------
+  # Runs every 30 min from 10:00-14:59 UTC daily (~6:00-11:00 AM EDT,
+  # covering the ~06:00 EST publish window with margin either side of DST).
+  # This recurrence IS the "short backoff" from Section 7 of the design doc
+  # - the Lambda no-ops cleanly if the file isn't published yet, so a
+  # missed early run just means the next one catches it 30 min later,
+  # without paying for in-Lambda sleep/retry time.
+  # ---------------------------------------------------------------------------
+  CalendlySpendSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: !Sub "${ProjectName}-calendly-spend-schedule"
+      ScheduleExpression: "cron(0/30 10-14 * * ? *)"
+      ScheduleExpressionTimezone: "UTC"
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Target:
+        Arn: !GetAtt CalendlySpendFunction.Arn
+        RoleArn: !GetAtt SchedulerInvokeRole.Arn
+
+Outputs:
+  CalendlySpendFunctionName:
+    Value: !Ref CalendlySpendFunction
+  CalendlySpendFunctionArn:
+    Value: !GetAtt CalendlySpendFunction.Arn
