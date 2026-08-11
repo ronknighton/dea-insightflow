@@ -19,12 +19,14 @@ Solution Design doc:
      Glue outputs use, so all three processed/ tables catalog uniformly).
   6. Post a Slack notification.
 
-ASSUMPTION FLAGGED: the exact public URL pattern for the dea-lead-owner
-lookup (e.g. https://dea-lead-owner.s3.amazonaws.com/{lead_id}.json vs. some
-other host/path convention) was not confirmed against the requirements doc's
-literal example at the time this was written. LEAD_OWNER_BASE_URL is an
-environment variable specifically so this can be corrected without a code
-change - verify the real pattern before the 7-day operational window begins.
+LEAD_OWNER_BASE_URL default is confirmed directly from the requirements doc's
+own formula: public_url = f"https://{bucket_name}.s3.us-east-1.amazonaws.com/
+{file_name}" - the earlier default here was missing the region in the
+hostname (dea-lead-owner.s3.amazonaws.com instead of
+dea-lead-owner.s3.us-east-1.amazonaws.com), which would have caused every
+lookup to fail or redirect unexpectedly. Still kept as an env var rather
+than inlined, for the same reason every other external endpoint in this
+project is - easy to repoint without a code change if it ever needs to.
 
 Environment variables:
   BUCKET_NAME          - InsightFlow data bucket
@@ -53,7 +55,7 @@ secrets_client = boto3.client("secretsmanager")
 
 BUCKET_NAME = os.environ.get("BUCKET_NAME")
 LEAD_OWNER_BASE_URL = os.environ.get(
-    "LEAD_OWNER_BASE_URL", "https://dea-lead-owner.s3.amazonaws.com"
+    "LEAD_OWNER_BASE_URL", "https://dea-lead-owner.s3.us-east-1.amazonaws.com"
 )
 SLACK_WEBHOOK_SECRET_ARN = os.environ.get("SLACK_WEBHOOK_SECRET_ARN")
 
@@ -77,7 +79,16 @@ def _get_slack_webhook_url() -> str:
 
 def _already_processed(lead_id: str) -> bool:
     """Idempotency check - SQS is at-least-once, so this WILL be called
-    more than once for some leads. That's expected, not a bug."""
+    more than once for some leads. That's expected, not a bug.
+
+    NOTE: HeadObject on a genuinely missing key returns 404 only if the
+    caller also has s3:ListBucket on the bucket (scoped via a Condition to
+    this prefix, see foundation.yaml's ListBucketForIdempotencyCheck).
+    Without it, S3 deliberately masks "not found" as 403 Forbidden, to
+    avoid revealing object existence to a principal without list rights.
+    This is a real S3 behavior, not a code bug - caught in testing when
+    this check failed with 403 on an object that legitimately didn't exist
+    yet, on a role that had GetObject/PutObject but no ListBucket."""
     key = f"processed/crm_leads_enriched/lead_{lead_id}.parquet"
     try:
         s3_client.head_object(Bucket=BUCKET_NAME, Key=key)

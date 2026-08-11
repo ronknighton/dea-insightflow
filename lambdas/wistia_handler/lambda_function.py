@@ -2,22 +2,29 @@
 InsightFlow - Wistia scheduled handler.
 
 Triggered by EventBridge Scheduler on a recurring cadence (see
-infrastructure/wistia.yaml). Per Section 8 of the InsightFlow Solution
-Design doc, for each of the two tracked media IDs:
+infrastructure/wistia.yaml). Per the requirements doc and Section 8 of the
+InsightFlow Solution Design doc, for each of the two tracked media IDs:
 
-  1. Pull the current engagement snapshot (stats/medias/{id}/engagement.json)
+  1. Pull media metadata (title, ID, hashed_id, created_at, etc.) - an
+     explicit, separate extraction requirement in the brief, distinct from
+     engagement metrics. Added after a review against the requirements doc
+     surfaced this was missing entirely from the first version of this
+     Lambda.
+  2. Pull the current engagement snapshot (stats/medias/{id}/engagement.json)
      - this is always an all-time aggregate, so it's simply re-fetched and
      overwritten each run; there's nothing to paginate or watermark here.
-  2. Pull new visitor-level events (stats/events.json) since the last run,
+  3. Pull new visitor-level events (stats/events.json) since the last run,
      using SSM-stored watermarks per media_id.
 
-AUTH CORRECTION FROM THE DESIGN DOC: Section 4 described this as "token-
-based Basic Auth." Checking Wistia's current API docs directly
-(docs.wistia.com/docs/making-api-requests) shows Bearer token in the
-Authorization header is the officially supported method ("The supported
-way to access the API is via Bearer Token"); HTTP Basic (username "api",
-token as password) is only listed as an alternative. This Lambda uses
-Bearer, and the design doc should be corrected to match.
+AUTH: the requirements doc explicitly states "Authenticate to Wistia Stats
+API using token-based Basic Auth." An earlier version of this Lambda used
+Bearer token auth instead, based on Wistia's general public API docs
+listing Bearer as their currently preferred method - that was the wrong
+call: the brief's literal, explicit instruction takes precedence over a
+general "best practice" preference, especially since Basic Auth is still a
+fully supported Wistia auth method, just not their newest-recommended one.
+Reverted to Basic Auth (username "api", API token as password) to match
+the brief exactly.
 
 INCREMENTAL WATERMARKING, WHY CLIENT-SIDE: Wistia's list endpoints support
 page/per_page and sort_by/sort_direction, but no documented "since
@@ -40,6 +47,7 @@ Environment variables:
   MEDIA_IDS         - comma-separated list of media IDs to track (default: the two given in the brief)
 """
 
+import base64
 import json
 import logging
 import os
@@ -81,11 +89,18 @@ def _get_token() -> str:
     return _cached_token
 
 
+def _basic_auth_header() -> str:
+    """HTTP Basic Auth per the requirements doc: username "api", API token
+    as the password."""
+    credentials = f"api:{_get_token()}".encode("utf-8")
+    return "Basic " + base64.b64encode(credentials).decode("ascii")
+
+
 def _api_get(path: str, params: dict = None) -> dict:
     url = f"{WISTIA_API_BASE}/{path}"
     if params:
         url += "?" + urllib.parse.urlencode(params)
-    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {_get_token()}"})
+    req = urllib.request.Request(url, headers={"Authorization": _basic_auth_header()})
     with urllib.request.urlopen(req, timeout=10) as response:
         return json.loads(response.read().decode("utf-8"))
 
@@ -111,6 +126,15 @@ def _set_watermark(media_id: str, timestamp: str) -> None:
         Type="String",
         Overwrite=True,
     )
+
+
+def _fetch_media_metadata(media_id: str) -> dict:
+    """Media metadata (title, ID, hashed_id, created_at, etc.) - an
+    explicit, separate extraction requirement in the brief, not covered by
+    the engagement or events pulls. Uses the general Data API (medias
+    endpoint), not the Stats API, since metadata about the media itself
+    isn't a stats concept."""
+    return _api_get(f"medias/{media_id}.json")
 
 
 def _fetch_engagement_snapshot(media_id: str) -> dict:
@@ -177,6 +201,9 @@ def _write_raw(media_id: str, kind: str, data) -> str:
 
 
 def _process_one_media(media_id: str) -> dict:
+    metadata = _fetch_media_metadata(media_id)
+    _write_raw(media_id, "metadata", metadata)
+
     engagement = _fetch_engagement_snapshot(media_id)
     _write_raw(media_id, "engagement", engagement)
 
