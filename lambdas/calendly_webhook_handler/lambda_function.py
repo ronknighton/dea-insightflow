@@ -30,15 +30,16 @@ this function before the 7-day operational window begins.
 Environment variables (set by the deploying stack, never hardcoded):
   SIGNING_SECRET_ARN           - Secrets Manager ARN of the Calendly signing secret
   BUCKET_NAME                  - InsightFlow data bucket
-  REQUIRE_SIGNATURE_VALIDATION - "true" (default) or "false". TEMPORARY
-      ESCAPE HATCH - see the identical setting in crm_webhook_handler for
-      full rationale. Calendly has an added wrinkle worth knowing: unlike
-      Close, Calendly's signing key is an OPTIONAL field the subscription
-      creator can choose to set or leave blank - if it was left blank, no
-      signature is ever sent at all, and no secret value will ever arrive
-      to fix that (there's nothing to hand over). Confirm with whoever
-      created the subscription whether a signing_key was actually set
-      before assuming this is just a pending handoff like the Close side.
+  REQUIRE_SIGNATURE_VALIDATION - "true" or "false" (default "false" as of
+      Aug 12, 2026 - see below). Calendly's signing key is an OPTIONAL
+      field the subscription creator can choose to set or leave blank -
+      if left blank, no signature is ever sent at all, and there's nothing
+      to hand over, ever. SME confirmed no signature is used on the
+      CRM/Close endpoint specifically; Calendly was never separately
+      confirmed. Defaulting to "false" here is a project decision made
+      given that pattern and Calendly's optional-signature mechanism, not
+      an SME answer - flip back to "true" if that assumption turns out
+      wrong.
 """
 
 import base64

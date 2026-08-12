@@ -32,6 +32,14 @@ Environment variables:
   BUCKET_NAME          - InsightFlow data bucket
   LEAD_OWNER_BASE_URL  - base URL for the public lookup, lead_id + ".json" is appended
   SLACK_WEBHOOK_SECRET_ARN - Secrets Manager ARN holding the Slack incoming webhook URL
+  NOTIFY_SLACK             - "true" (default) or "false". Volume control: Close's
+      retry backlog can drain in a burst (every failed delivery retried at
+      once once a blocker is removed), which fans out into a burst of
+      near-simultaneous Slack notifications 10 minutes later, one per lead.
+      Set to "false" to process leads (S3 write, idempotency) without
+      notifying, e.g. while draining a large backlog. Unlike
+      REQUIRE_SIGNATURE_VALIDATION this isn't a security control, so it's
+      logged at INFO, not WARNING.
 """
 
 import io
@@ -58,6 +66,7 @@ LEAD_OWNER_BASE_URL = os.environ.get(
     "LEAD_OWNER_BASE_URL", "https://dea-lead-owner.s3.us-east-1.amazonaws.com"
 )
 SLACK_WEBHOOK_SECRET_ARN = os.environ.get("SLACK_WEBHOOK_SECRET_ARN")
+NOTIFY_SLACK = os.environ.get("NOTIFY_SLACK", "true").lower() != "false"
 
 _cached_slack_webhook_url = None
 
@@ -198,7 +207,15 @@ def _process_one_message(body: dict) -> None:
     owner_data = _lookup_lead_owner(lead_id)
     record = _merge(webhook_event, owner_data, lead_id)
     _write_parquet(record, lead_id)
-    _notify_slack(record)
+
+    if NOTIFY_SLACK:
+        _notify_slack(record)
+    else:
+        # Volume control, not a security toggle - unlike
+        # REQUIRE_SIGNATURE_VALIDATION this doesn't warrant a loud WARNING
+        # on every run; it's a deliberate preference, not a risk.
+        logger.info("Slack notification skipped (NOTIFY_SLACK=false) for lead_id=%s", lead_id)
+
     logger.info("Processed lead_id=%s (owner=%s)", lead_id, record.get("lead_owner") or "pending")
 
 

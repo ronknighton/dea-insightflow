@@ -187,10 +187,44 @@ def test_placeholder_slack_url_does_not_fail_the_message(mock_s3, mock_wr):
     print("PASS: placeholder Slack URL -> notification silently fails, message still succeeds")
 
 
+@patch("lambda_function.urllib.request.urlopen")
+@patch.object(lf, "wr")
+@patch.object(lf, "s3_client")
+def test_notify_slack_false_skips_notification_but_still_processes(mock_s3, mock_wr, mock_urlopen):
+    """NOTIFY_SLACK=false: the write must still happen (this is a volume
+    control, not a way to skip real processing), but no Slack call at all -
+    not even an attempted one that then silently fails."""
+    lf.BUCKET_NAME = "test-bucket"
+    original = lf.NOTIFY_SLACK
+    lf.NOTIFY_SLACK = False
+    try:
+        mock_s3.head_object.side_effect = _not_found_error()
+        raw_event = {"event": {"object_type": "lead", "data": {"id": "lead_quiet1", "display_name": "Quiet Co"}}}
+        mock_get_response = MagicMock()
+        mock_get_response.__getitem__.side_effect = lambda k: {
+            "Body": MagicMock(read=lambda: json.dumps(raw_event).encode("utf-8"))
+        }[k]
+        mock_s3.get_object.return_value = mock_get_response
+
+        # Only the lead-owner lookup should call urlopen - zero Slack calls
+        import urllib.error
+        mock_urlopen.side_effect = [urllib.error.HTTPError("url", 404, "Not Found", {}, None)]
+
+        result = lf.lambda_handler(_sqs_event(lead_id="lead_quiet1"), None)
+
+        assert result["batchItemFailures"] == []
+        mock_wr.s3.to_parquet.assert_called_once()  # processing still happened
+        assert mock_urlopen.call_count == 1  # lookup only - no Slack POST attempted at all
+        print("PASS: NOTIFY_SLACK=false -> lead still processed and written, Slack call skipped entirely")
+    finally:
+        lf.NOTIFY_SLACK = original
+
+
 if __name__ == "__main__":
     test_full_flow_writes_parquet_and_notifies()
     test_idempotent_redelivery_is_noop()
     test_missing_owner_treated_as_valid_not_error()
     test_processing_failure_reports_batch_item_failure()
     test_placeholder_slack_url_does_not_fail_the_message()
+    test_notify_slack_false_skips_notification_but_still_processes()
     print("\nAll tests passed.")

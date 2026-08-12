@@ -16,14 +16,17 @@ Parameters:
     Description: Must match the prefix used in foundation.yaml.
   RequireSignatureValidation:
     Type: String
-    Default: "true"
+    Default: "false"
     AllowedValues: ["true", "false"]
     Description: >
-      TEMPORARY ESCAPE HATCH - see REQUIRE_SIGNATURE_VALIDATION in
-      lambda_function.py's docstring for full rationale, including
-      Calendly's specific wrinkle: its signing_key is optional at
-      subscription creation, so "no secret to hand over" is a real
-      possible state, not just "not yet sent." Defaults to "true" (safe).
+      PROJECT DECISION, not an SME confirmation - worth keeping that
+      distinction honest. SME explicitly confirmed no signature is used on
+      the CRM/Close endpoint (Aug 12, 2026); Calendly was never separately
+      confirmed. Defaulting to "false" here anyway, based on the pattern
+      of SME responses on this project and the fact that Calendly's
+      signing_key is optional at subscription creation (so "no secret was
+      ever set" is plausible here too) - a judgment call, reversible via
+      this flag the moment there's reason to believe otherwise.
 
 Resources:
 
