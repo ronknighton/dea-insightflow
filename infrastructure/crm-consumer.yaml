@@ -34,6 +34,16 @@ Parameters:
       {file_name}". Corrected from an earlier default that was missing the
       region in the hostname (dea-lead-owner.s3.amazonaws.com), which would
       have caused every lookup to fail or redirect unexpectedly.
+  NotifySlack:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >
+      Volume control, not a security setting. Close's retry backlog can
+      drain in a burst once a blocker is cleared, which fans out into a
+      correspondingly large burst of Slack notifications ~10 minutes
+      later, one per lead. Set to "false" temporarily while draining a
+      large backlog if the notification volume is disruptive.
 
 Resources:
 
@@ -56,6 +66,7 @@ Resources:
           LEAD_OWNER_BASE_URL: !Ref LeadOwnerBaseUrl
           SLACK_WEBHOOK_SECRET_ARN: !ImportValue
             Fn::Sub: "${ProjectName}-slack-webhook-url-secret-arn"
+          NOTIFY_SLACK: !Ref NotifySlack
       Code:
         ZipFile: |
           def lambda_handler(event, context):

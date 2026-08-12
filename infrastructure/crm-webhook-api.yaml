@@ -21,15 +21,13 @@ Parameters:
     Description: Must match the prefix used in foundation.yaml.
   RequireSignatureValidation:
     Type: String
-    Default: "true"
+    Default: "false"
     AllowedValues: ["true", "false"]
     Description: >
-      TEMPORARY ESCAPE HATCH - see REQUIRE_SIGNATURE_VALIDATION in
-      lambda_function.py's docstring for full rationale. Set to "false"
-      only while genuinely blocked on the real Close signing secret;
-      set back to "true" the moment it's available. Defaults to "true"
-      (safe) so this can never be silently left disabled by accepting
-      template defaults.
+      RESOLVED, not a pending workaround: SME confirmed directly (Aug 12,
+      2026) that this endpoint's webhook was created without a signature -
+      "no signature or secrets needed." Defaulting to "false" reflects that
+      confirmed answer. Flip to "true" only if that changes.
 
 Resources:
 

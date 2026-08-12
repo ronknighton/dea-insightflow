@@ -23,21 +23,17 @@ Environment variables (set by the deploying stack, never hardcoded):
   SIGNING_SECRET_ARN           - Secrets Manager ARN of the Close webhook signing secret
   BUCKET_NAME                  - InsightFlow data bucket
   DELAY_QUEUE_URL              - URL of the CRM lead delay queue
-  REQUIRE_SIGNATURE_VALIDATION - "true" (default) or "false". TEMPORARY
-      ESCAPE HATCH: the requirements doc never actually mandates signature
-      validation - this was added independently as standard webhook
-      security practice. Real Close traffic has been failing validation
-      because the signing secret is still a placeholder pending an SME
-      handoff (Close generates it server-side at subscription creation and
-      only returns it to whoever created the subscription - not
-      reproducible or self-served on our end). Left enabled long enough,
-      Close auto-pauses a subscription after 3 straight days of failed
-      deliveries. Setting this to "false" accepts all traffic unvalidated
-      so the subscription stays alive and real data keeps flowing while
-      the secret handoff is pending - a deliberate, reversible, documented
-      tradeoff (see Section 14 of the design doc), not a silent weakening.
-      Set back to "true" the moment the real signing secret is in Secrets
-      Manager - this is not meant to be a permanent setting.
+  REQUIRE_SIGNATURE_VALIDATION - "true" or "false" (default "false" as of
+      Aug 12, 2026 - see below). The requirements doc never mandates
+      signature validation - this was added independently as standard
+      webhook security practice. Real Close traffic was failing this
+      validation because the signing secret was a placeholder; SME
+      confirmed directly (Aug 12, 2026) that this webhook was created
+      without a signature at all - "no signature or secrets needed." This
+      is RESOLVED, not a pending workaround: default is "false" because
+      that's the confirmed correct behavior for this endpoint, not because
+      a secret handoff is still in progress. See Section 13 of the design
+      doc. Flip to "true" only if that answer changes.
 """
 
 import base64
