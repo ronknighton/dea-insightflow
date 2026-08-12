@@ -14,6 +14,16 @@ Parameters:
     Type: String
     Default: insightflow
     Description: Must match the prefix used in foundation.yaml.
+  RequireSignatureValidation:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >
+      TEMPORARY ESCAPE HATCH - see REQUIRE_SIGNATURE_VALIDATION in
+      lambda_function.py's docstring for full rationale, including
+      Calendly's specific wrinkle: its signing_key is optional at
+      subscription creation, so "no secret to hand over" is a real
+      possible state, not just "not yet sent." Defaults to "true" (safe).
 
 Resources:
 
@@ -33,6 +43,7 @@ Resources:
             Fn::Sub: "${ProjectName}-bucket-name"
           SIGNING_SECRET_ARN: !ImportValue
             Fn::Sub: "${ProjectName}-calendly-webhook-signing-secret-arn"
+          REQUIRE_SIGNATURE_VALIDATION: !Ref RequireSignatureValidation
       Code:
         ZipFile: |
           import json
