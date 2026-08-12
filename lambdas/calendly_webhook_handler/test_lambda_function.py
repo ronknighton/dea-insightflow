@@ -88,6 +88,28 @@ def test_invalid_signature_rejected(mock_key, mock_s3):
 
 @patch.object(lf, "s3_client")
 @patch.object(lf, "_get_signing_key", return_value=SIGNING_KEY)
+def test_toggle_disabled_accepts_bad_signature(mock_key, mock_s3):
+    """REQUIRE_SIGNATURE_VALIDATION escape hatch, same rationale as the
+    CRM webhook's identical test. Also covers Calendly's specific wrinkle:
+    an empty/missing signature header (the case where no signing_key was
+    ever set on the subscription) must ALSO be accepted when disabled."""
+    original = lf.REQUIRE_SIGNATURE_VALIDATION
+    lf.REQUIRE_SIGNATURE_VALIDATION = False
+    try:
+        body = _invitee_created_body(channel="facebook_paid_ads")
+        event = _api_gw_event(body, "")  # no signature header at all
+
+        result = lf.lambda_handler(event, None)
+
+        assert result["statusCode"] == 200
+        mock_s3.put_object.assert_called_once()
+        print("PASS: REQUIRE_SIGNATURE_VALIDATION=false -> missing/bad signature accepted")
+    finally:
+        lf.REQUIRE_SIGNATURE_VALIDATION = original
+
+
+@patch.object(lf, "s3_client")
+@patch.object(lf, "_get_signing_key", return_value=SIGNING_KEY)
 def test_untracked_channel_acknowledged_not_written(mock_key, mock_s3):
     body = _invitee_created_body(channel="organic_search")  # not in TRACKED_EVENT_TYPES
     timestamp = "1700000000"
@@ -144,6 +166,7 @@ def test_channel_from_custom_question_fallback(mock_key, mock_s3):
 if __name__ == "__main__":
     test_valid_tracked_channel_writes_s3()
     test_invalid_signature_rejected()
+    test_toggle_disabled_accepts_bad_signature()
     test_untracked_channel_acknowledged_not_written()
     test_malformed_signature_header_rejected()
     test_channel_from_custom_question_fallback()

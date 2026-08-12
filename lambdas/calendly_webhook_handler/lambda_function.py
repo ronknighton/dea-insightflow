@@ -28,8 +28,17 @@ silently mis-filtering events. Verify against a live payload and tighten
 this function before the 7-day operational window begins.
 
 Environment variables (set by the deploying stack, never hardcoded):
-  SIGNING_SECRET_ARN  - Secrets Manager ARN of the Calendly signing secret
-  BUCKET_NAME         - InsightFlow data bucket
+  SIGNING_SECRET_ARN           - Secrets Manager ARN of the Calendly signing secret
+  BUCKET_NAME                  - InsightFlow data bucket
+  REQUIRE_SIGNATURE_VALIDATION - "true" (default) or "false". TEMPORARY
+      ESCAPE HATCH - see the identical setting in crm_webhook_handler for
+      full rationale. Calendly has an added wrinkle worth knowing: unlike
+      Close, Calendly's signing key is an OPTIONAL field the subscription
+      creator can choose to set or leave blank - if it was left blank, no
+      signature is ever sent at all, and no secret value will ever arrive
+      to fix that (there's nothing to hand over). Confirm with whoever
+      created the subscription whether a signing_key was actually set
+      before assuming this is just a pending handoff like the Close side.
 """
 
 import base64
@@ -51,6 +60,7 @@ secrets_client = boto3.client("secretsmanager")
 
 BUCKET_NAME = os.environ.get("BUCKET_NAME")
 SIGNING_SECRET_ARN = os.environ.get("SIGNING_SECRET_ARN")
+REQUIRE_SIGNATURE_VALIDATION = os.environ.get("REQUIRE_SIGNATURE_VALIDATION", "true").lower() != "false"
 
 # The three channels this pipeline tracks, per Section 2/7 of the design doc.
 TRACKED_EVENT_TYPES = {"facebook_paid_ads", "youtube_paid_ads", "tiktok_paid_ads"}
@@ -156,9 +166,18 @@ def lambda_handler(event, context):
     if event.get("isBase64Encoded"):
         raw_body = base64.b64decode(raw_body).decode("utf-8")
 
-    if not _verify_signature(signature_header, raw_body):
-        logger.warning("Signature validation failed - rejecting request")
-        return {"statusCode": 401, "body": json.dumps({"error": "invalid signature"})}
+    if REQUIRE_SIGNATURE_VALIDATION:
+        if not _verify_signature(signature_header, raw_body):
+            logger.warning("Signature validation failed - rejecting request")
+            return {"statusCode": 401, "body": json.dumps({"error": "invalid signature"})}
+    else:
+        # TEMPORARY - see REQUIRE_SIGNATURE_VALIDATION note in module
+        # docstring. Deliberately noisy (WARNING, not INFO) so this can't
+        # quietly stay disabled.
+        logger.warning(
+            "Signature validation is DISABLED (REQUIRE_SIGNATURE_VALIDATION=false) - "
+            "accepting request unvalidated. This is a temporary bridge, not a permanent state."
+        )
 
     try:
         event_body = json.loads(raw_body)

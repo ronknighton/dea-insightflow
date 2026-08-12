@@ -20,9 +20,24 @@ pause), which this design already does independent of the 10-minute
 requirement - the SQS handoff satisfies both needs at once.
 
 Environment variables (set by the deploying stack, never hardcoded):
-  SIGNING_SECRET_ARN  - Secrets Manager ARN of the Close webhook signing secret
-  BUCKET_NAME         - InsightFlow data bucket
-  DELAY_QUEUE_URL     - URL of the CRM lead delay queue
+  SIGNING_SECRET_ARN           - Secrets Manager ARN of the Close webhook signing secret
+  BUCKET_NAME                  - InsightFlow data bucket
+  DELAY_QUEUE_URL              - URL of the CRM lead delay queue
+  REQUIRE_SIGNATURE_VALIDATION - "true" (default) or "false". TEMPORARY
+      ESCAPE HATCH: the requirements doc never actually mandates signature
+      validation - this was added independently as standard webhook
+      security practice. Real Close traffic has been failing validation
+      because the signing secret is still a placeholder pending an SME
+      handoff (Close generates it server-side at subscription creation and
+      only returns it to whoever created the subscription - not
+      reproducible or self-served on our end). Left enabled long enough,
+      Close auto-pauses a subscription after 3 straight days of failed
+      deliveries. Setting this to "false" accepts all traffic unvalidated
+      so the subscription stays alive and real data keeps flowing while
+      the secret handoff is pending - a deliberate, reversible, documented
+      tradeoff (see Section 14 of the design doc), not a silent weakening.
+      Set back to "true" the moment the real signing secret is in Secrets
+      Manager - this is not meant to be a permanent setting.
 """
 
 import base64
@@ -47,6 +62,7 @@ BUCKET_NAME = os.environ.get("BUCKET_NAME")
 DELAY_QUEUE_URL = os.environ.get("DELAY_QUEUE_URL")
 SIGNING_SECRET_ARN = os.environ.get("SIGNING_SECRET_ARN")
 DELAY_SECONDS = 600  # 10 minutes, per the brief's stated requirement
+REQUIRE_SIGNATURE_VALIDATION = os.environ.get("REQUIRE_SIGNATURE_VALIDATION", "true").lower() != "false"
 
 # Cached across warm invocations so every request doesn't re-call Secrets
 # Manager - it's fetched once per execution environment, not once per event.
@@ -131,9 +147,19 @@ def lambda_handler(event, context):
     if event.get("isBase64Encoded"):
         raw_body = base64.b64decode(raw_body).decode("utf-8")
 
-    if not _verify_signature(timestamp, raw_body, provided_hash):
-        logger.warning("Signature validation failed - rejecting request")
-        return {"statusCode": 401, "body": json.dumps({"error": "invalid signature"})}
+    if REQUIRE_SIGNATURE_VALIDATION:
+        if not _verify_signature(timestamp, raw_body, provided_hash):
+            logger.warning("Signature validation failed - rejecting request")
+            return {"statusCode": 401, "body": json.dumps({"error": "invalid signature"})}
+    else:
+        # TEMPORARY - see REQUIRE_SIGNATURE_VALIDATION note in module
+        # docstring. Logged at WARNING (not INFO) on every single
+        # invocation, deliberately noisy, so this can't quietly stay
+        # disabled after the real secret becomes available.
+        logger.warning(
+            "Signature validation is DISABLED (REQUIRE_SIGNATURE_VALIDATION=false) - "
+            "accepting request unvalidated. This is a temporary bridge, not a permanent state."
+        )
 
     try:
         event_body = json.loads(raw_body)

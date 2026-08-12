@@ -19,6 +19,17 @@ Parameters:
     Type: String
     Default: insightflow
     Description: Must match the prefix used in foundation.yaml.
+  RequireSignatureValidation:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: >
+      TEMPORARY ESCAPE HATCH - see REQUIRE_SIGNATURE_VALIDATION in
+      lambda_function.py's docstring for full rationale. Set to "false"
+      only while genuinely blocked on the real Close signing secret;
+      set back to "true" the moment it's available. Defaults to "true"
+      (safe) so this can never be silently left disabled by accepting
+      template defaults.
 
 Resources:
 
@@ -40,6 +51,7 @@ Resources:
             Fn::Sub: "${ProjectName}-crm-delay-queue-url"
           SIGNING_SECRET_ARN: !ImportValue
             Fn::Sub: "${ProjectName}-crm-webhook-signing-secret-arn"
+          REQUIRE_SIGNATURE_VALIDATION: !Ref RequireSignatureValidation
       Code:
         # Placeholder only - see description above. Returns 500 so a webhook
         # delivered before the first real deploy fails loudly (and Close

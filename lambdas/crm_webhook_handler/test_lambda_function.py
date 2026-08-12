@@ -105,6 +105,32 @@ def test_invalid_signature_rejected(mock_key, mock_s3, mock_sqs):
 @patch.object(lf, "sqs_client")
 @patch.object(lf, "s3_client")
 @patch.object(lf, "_get_signing_key", return_value=SIGNING_KEY_HEX)
+def test_toggle_disabled_accepts_bad_signature(mock_key, mock_s3, mock_sqs):
+    """The REQUIRE_SIGNATURE_VALIDATION escape hatch: with it set to false,
+    even a deliberately wrong signature must be accepted and processed
+    normally - this is the whole point of the toggle. Restores the module
+    flag afterward so this test can't leak state into others."""
+    original = lf.REQUIRE_SIGNATURE_VALIDATION
+    lf.REQUIRE_SIGNATURE_VALIDATION = False
+    try:
+        body = _lead_created_body()
+        timestamp = "1544271440"
+        tampered_sig = "0" * 64  # would fail validation if it were checked
+        event = _api_gw_event(body, timestamp, tampered_sig)
+
+        result = lf.lambda_handler(event, None)
+
+        assert result["statusCode"] == 200
+        mock_s3.put_object.assert_called_once()
+        mock_sqs.send_message.assert_called_once()
+        print("PASS: REQUIRE_SIGNATURE_VALIDATION=false -> bad signature accepted and processed")
+    finally:
+        lf.REQUIRE_SIGNATURE_VALIDATION = original
+
+
+@patch.object(lf, "sqs_client")
+@patch.object(lf, "s3_client")
+@patch.object(lf, "_get_signing_key", return_value=SIGNING_KEY_HEX)
 def test_non_lead_event_acknowledged_but_skipped(mock_key, mock_s3, mock_sqs):
     # An opportunity event with no lead_id at the top level and object_type != lead
     body = json.dumps({
@@ -157,6 +183,7 @@ def test_lead_id_at_event_top_level(mock_key, mock_s3, mock_sqs):
 if __name__ == "__main__":
     test_valid_signature_writes_s3_and_enqueues_sqs()
     test_invalid_signature_rejected()
+    test_toggle_disabled_accepts_bad_signature()
     test_non_lead_event_acknowledged_but_skipped()
     test_lead_id_at_event_top_level()
     print("\nAll tests passed.")
