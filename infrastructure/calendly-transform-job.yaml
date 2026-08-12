@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  InsightFlow Calendly transform job: AWS Glue Python Shell job that reads
+  raw Calendly bookings and spend files and writes two clean Parquet tables
+  to processed/ (Section 7 of the design doc). No placeholder-code pattern
+  here, unlike the Lambdas - a Glue Job resource has no inline-code option
+  the way AWS::Lambda::Function does; ScriptLocation must point at a real
+  S3 object from the moment the stack is created, so the actual script
+  needs to be uploaded to S3 BEFORE this stack is deployed (see Next
+  Steps). CI/CD (.github/workflows/ci-cd.yml) syncs the script to S3 on
+  every merge to main, same as Lambda code deploys, but via `aws s3 cp`
+  rather than `update-function-code`.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: insightflow
+    Description: Must match the prefix used in foundation.yaml.
+
+Resources:
+
+  CalendlyTransformJob:
+    Type: AWS::Glue::Job
+    Properties:
+      Name: !Sub "${ProjectName}-calendly-transform"
+      Role: !ImportValue
+        Fn::Sub: "${ProjectName}-glue-transform-role-arn"
+      Command:
+        Name: pythonshell
+        PythonVersion: "3.9" # ships with pandas + awswrangler pre-installed - no custom layer needed
+        ScriptLocation: !Sub
+          - "s3://${BucketName}/glue-scripts/calendly_transform/script.py"
+          - BucketName: !ImportValue
+              Fn::Sub: "${ProjectName}-bucket-name"
+      DefaultArguments:
+        "--BUCKET_NAME": !ImportValue
+          Fn::Sub: "${ProjectName}-bucket-name"
+      MaxCapacity: 0.0625 # cheapest Python Shell tier - matches the "0.0625-1 DPU, short-running job" sizing in Section 4 of the design doc
+      MaxRetries: 1
+      Timeout: 30 # minutes - generous for a small-volume full-table rebuild
+
+  # ---------------------------------------------------------------------------
+  # EventBridge Scheduler needs glue:StartJobRun permission, not
+  # lambda:InvokeFunction - a different action for a different target type,
+  # same "who's allowed to start it" role pattern as the Lambda schedules.
+  # ---------------------------------------------------------------------------
+  SchedulerInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-calendly-transform-scheduler-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: scheduler.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: start-calendly-transform-job
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: glue:StartJobRun
+                Resource: !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:job/${CalendlyTransformJob}"
+
+  # Runs every 30 min - independent of the Calendly spend Lambda's own
+  # 10:00-14:59 UTC window, since this job also needs to pick up new
+  # bookings landing outside that narrow spend-file window.
+  CalendlyTransformSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: !Sub "${ProjectName}-calendly-transform-schedule"
+      ScheduleExpression: "rate(30 minutes)"
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Target:
+        Arn: "arn:aws:scheduler:::aws-sdk:glue:startJobRun"
+        RoleArn: !GetAtt SchedulerInvokeRole.Arn
+        Input: !Sub '{"JobName": "${CalendlyTransformJob}"}'
+
+Outputs:
+  CalendlyTransformJobName:
+    Value: !Ref CalendlyTransformJob

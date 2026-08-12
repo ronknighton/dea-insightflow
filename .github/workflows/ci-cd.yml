@@ -56,6 +56,38 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1 # dummy region so boto3 clients construct; no real AWS calls in tests
         run: python -m pytest test_lambda_function.py -v
 
+  test-glue:
+    name: Lint & test Glue jobs
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Same explicit-list pattern as lambda_dir above, for the same reason.
+        glue_dir:
+          - calendly_transform
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9" # matches the deployed Glue Python Shell runtime (infrastructure/calendly-transform-job.yaml)
+
+      - name: Install dependencies
+        working-directory: glue_jobs/${{ matrix.glue_dir }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install boto3 pytest pandas awswrangler
+
+      - name: Syntax check
+        working-directory: glue_jobs/${{ matrix.glue_dir }}
+        run: python -m py_compile script.py
+
+      - name: Run tests
+        working-directory: glue_jobs/${{ matrix.glue_dir }}
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+        run: python -m pytest test_script.py -v
+
   deploy:
     name: Deploy to AWS
     needs: test
@@ -93,3 +125,32 @@ jobs:
           else
             echo "::warning::Function $FUNCTION_NAME does not exist yet - skipping deploy. Provision it in CloudFormation first, then this step will pick it up on the next merge."
           fi
+
+  deploy-glue:
+    name: Deploy Glue scripts to S3
+    needs: test-glue
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        glue_dir:
+          - calendly_transform
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::022868553110:role/insightflow-github-actions-deploy-role
+          aws-region: us-east-1
+
+      - name: Upload Glue script to S3
+        # Unlike Lambda, a Glue Job resource has no "placeholder code"
+        # option - ScriptLocation must point at a real object from stack
+        # creation onward. This step just syncs the file; CloudFormation
+        # itself doesn't need to change or re-run for the Glue job to pick
+        # up the new script on its next scheduled invocation.
+        run: |
+          aws s3 cp glue_jobs/${{ matrix.glue_dir }}/script.py \
+            s3://insightflow-project-022868553110/glue-scripts/${{ matrix.glue_dir }}/script.py
