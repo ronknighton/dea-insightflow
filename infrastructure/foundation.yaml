@@ -344,6 +344,10 @@ Resources:
                 Effect: Allow
                 Action: s3:GetObject
                 Resource: !Sub "${DataBucket.Arn}/raw/*"
+              - Sid: ReadGlueScripts
+                Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub "${DataBucket.Arn}/glue-scripts/*"
               - Sid: WriteProcessed
                 Effect: Allow
                 Action:
