@@ -142,6 +142,66 @@ def test_no_files_returns_empty_dataframe_not_error(mock_s3):
     print("PASS: no matching files -> empty DataFrame, no exception")
 
 
+def test_stringify_nested_columns_converts_dicts_and_lists():
+    df = pd.DataFrame({
+        "conversion_data": [{}, {}, {"clicked": True}],
+        "tags": [["a", "b"], [], ["c"]],
+        "plain_field": ["x", "y", "z"],
+    })
+
+    result = sc._stringify_nested_columns(df)
+
+    assert result["conversion_data"].tolist() == ["{}", "{}", '{"clicked": true}']
+    assert result["tags"].tolist() == ['["a", "b"]', "[]", '["c"]']
+    assert result["plain_field"].tolist() == ["x", "y", "z"]  # untouched - no nested values
+    print("PASS: dict/list columns stringified, plain columns left alone")
+
+
+def test_empty_struct_column_actually_writes_to_parquet_after_fix():
+    """
+    REAL regression test for the exact live-data failure hit on Aug 14,
+    2026: pyarrow.lib.ArrowNotImplementedError: Cannot write struct type
+    'conversion_data' with no child field to Parquet. This deliberately
+    does NOT mock awswrangler/pyarrow - every other test in this file
+    mocks `wr` entirely, which is exactly why this failure mode was never
+    caught before it happened against real Wistia data. This test writes
+    a real local Parquet file via pyarrow directly, reproducing the same
+    empty-dict-column shape, to prove the fix actually works against the
+    real library, not just against a mock.
+    """
+    import tempfile
+    import os
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    df = pd.DataFrame({
+        "event_key": ["e1", "e2"],
+        "conversion_data": [{}, {}],  # the exact shape that broke the real run
+    })
+
+    # Confirm the bug is real and reproducible before proving the fix -
+    # this table WITHOUT the fix should fail exactly as it did in production.
+    table = pa.Table.from_pandas(df)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = os.path.join(tmpdir, "unfixed.parquet")
+        try:
+            pq.write_table(table, path)
+            raise AssertionError("Expected ArrowNotImplementedError on empty struct column - fix may have broken the repro")
+        except pa.lib.ArrowNotImplementedError:
+            pass  # expected - confirms this test is actually exercising the real bug
+
+    # Now apply the fix and confirm the same shape writes successfully.
+    fixed_df = sc._stringify_nested_columns(df)
+    fixed_table = pa.Table.from_pandas(fixed_df)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = os.path.join(tmpdir, "fixed.parquet")
+        pq.write_table(fixed_table, path)  # must not raise
+        read_back = pq.read_table(path).to_pandas()
+        assert read_back["conversion_data"].tolist() == ["{}", "{}"]
+
+    print("PASS: empty-struct column (real production failure) now writes to Parquet successfully")
+
+
 if __name__ == "__main__":
     test_extract_media_id_from_key()
     test_transform_metadata_filters_to_metadata_files_only()
@@ -149,4 +209,6 @@ if __name__ == "__main__":
     test_transform_events_one_row_per_event_across_files()
     test_malformed_file_skipped_without_failing_the_run()
     test_no_files_returns_empty_dataframe_not_error()
+    test_stringify_nested_columns_converts_dicts_and_lists()
+    test_empty_struct_column_actually_writes_to_parquet_after_fix()
     print("\nAll tests passed.")
