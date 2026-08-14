@@ -30,6 +30,15 @@ against an unexpected shape instead of crashing - but the resulting
 columns should be spot-checked against real output before relying on them
 in a marts-layer query.
 
+CONFIRMED AGAINST LIVE DATA (Aug 14, 2026): real Wistia events include a
+"conversion_data" field that comes back as an empty dict ({}) on events
+with no conversion tracked - pyarrow cannot write an empty struct to
+Parquet at all (ArrowNotImplementedError, not a graceful skip). See
+_stringify_nested_columns() - any dict/list-valued column is JSON-
+stringified before writing, rather than special-casing this one field,
+since Wistia's full event schema isn't documented anywhere available to
+this project.
+
 Job parameters (passed as --KEY value by the Glue job definition):
   --BUCKET_NAME  InsightFlow data bucket
 """
@@ -160,10 +169,34 @@ def transform_events(bucket: str) -> pd.DataFrame:
     return df
 
 
+def _stringify_nested_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Pyarrow cannot write a struct-typed column that has zero child fields -
+    a real failure hit against live Wistia event data, not a hypothetical:
+    events with no conversion tracked come back with "conversion_data": {}
+    (an empty dict), and pyarrow has no field to infer a schema from,
+    raising ArrowNotImplementedError. Rather than special-case that one
+    field (there could be others - Wistia's schema isn't fully documented
+    anywhere this project has access to), any column holding dict or list
+    values gets JSON-stringified before writing, sidestepping pyarrow's
+    struct inference entirely. A record with genuinely populated nested
+    data (e.g. a real conversion click) also becomes a JSON string -
+    still fully inspectable in Athena via json_extract_scalar if ever
+    needed, just not natively typed as a nested column.
+    """
+    df = df.copy()
+    for col in df.columns:
+        has_nested = df[col].apply(lambda v: isinstance(v, (dict, list))).any()
+        if has_nested:
+            df[col] = df[col].apply(lambda v: json.dumps(v) if isinstance(v, (dict, list)) else v)
+    return df
+
+
 def _write_if_not_empty(df: pd.DataFrame, bucket: str, table_name: str) -> None:
     if df.empty:
         logger.info("No data for %s - skipping write (leaving prior processed/ output untouched)", table_name)
         return
+    df = _stringify_nested_columns(df)
     wr.s3.to_parquet(
         df=df,
         path=f"s3://{bucket}/processed/{table_name}/",
