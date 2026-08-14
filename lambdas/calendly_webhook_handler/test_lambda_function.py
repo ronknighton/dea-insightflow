@@ -110,7 +110,11 @@ def test_toggle_disabled_accepts_bad_signature(mock_key, mock_s3):
 
 @patch.object(lf, "s3_client")
 @patch.object(lf, "_get_signing_key", return_value=SIGNING_KEY)
-def test_untracked_channel_acknowledged_not_written(mock_key, mock_s3):
+def test_untracked_channel_still_written_to_raw(mock_key, mock_s3):
+    """REVISED behavior (Aug 14, 2026): an untracked/unrecognized channel
+    must NOT prevent the write - this is the exact regression that lost
+    real production Calendly bookings when channel filtering used to gate
+    the write. Classification now happens at transform time, not here."""
     body = _invitee_created_body(channel="organic_search")  # not in TRACKED_EVENT_TYPES
     timestamp = "1700000000"
     sig = _sign(timestamp, body)
@@ -119,9 +123,40 @@ def test_untracked_channel_acknowledged_not_written(mock_key, mock_s3):
     result = lf.lambda_handler(event, None)
 
     assert result["statusCode"] == 200
-    assert json.loads(result["body"])["status"] == "ignored"
-    mock_s3.put_object.assert_not_called()
-    print("PASS: untracked channel -> acknowledged, not written")
+    payload = json.loads(result["body"])
+    assert payload["status"] == "accepted"  # not "ignored" - this is the actual fix being tested
+    mock_s3.put_object.assert_called_once()
+    print("PASS: untracked channel -> still written to raw/, not silently discarded")
+
+
+@patch.object(lf, "s3_client")
+@patch.object(lf, "_get_signing_key", return_value=SIGNING_KEY)
+def test_unrecognized_channel_shape_still_written_to_raw(mock_key, mock_s3):
+    """The specific real-world failure: a payload whose tracking fields
+    don't match ANY of _extract_channel's guessed locations at all (not
+    just an untracked value, but no match whatsoever - channel comes back
+    None). This is exactly what happened against real Calendly traffic.
+    Must still write to raw/ with channel=null, not discard the event."""
+    body = json.dumps({
+        "event": "invitee.created",
+        "payload": {
+            "id": "INV_UNKNOWN_SHAPE",
+            "tracking": {"utm_campaign": None, "utm_source": None},
+            "questions_and_answers": [],
+        },
+    })
+    timestamp = "1700000000"
+    sig = _sign(timestamp, body)
+    event = _api_gw_event(body, sig)
+
+    result = lf.lambda_handler(event, None)
+
+    assert result["statusCode"] == 200
+    payload = json.loads(result["body"])
+    assert payload["status"] == "accepted"
+    assert payload["channel"] is None
+    mock_s3.put_object.assert_called_once()
+    print("PASS: unrecognized channel shape (channel=None) -> still written to raw/, not lost")
 
 
 @patch.object(lf, "s3_client")
@@ -167,7 +202,8 @@ if __name__ == "__main__":
     test_valid_tracked_channel_writes_s3()
     test_invalid_signature_rejected()
     test_toggle_disabled_accepts_bad_signature()
-    test_untracked_channel_acknowledged_not_written()
+    test_untracked_channel_still_written_to_raw()
+    test_unrecognized_channel_shape_still_written_to_raw()
     test_malformed_signature_header_rejected()
     test_channel_from_custom_question_fallback()
     print("\nAll tests passed.")
