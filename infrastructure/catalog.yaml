@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  InsightFlow Glue Data Catalog: one database and one crawler covering all
+  of processed/ (CRM, Calendly bookings/spend, Wistia metadata/engagement/
+  events). A single crawler pointed at the processed/ root, rather than
+  one per source - Glue's crawler registers each direct subfolder as its
+  own table based on schema, so crm_leads_enriched/, calendly_bookings/,
+  calendly_spend/, wistia_media_metadata/, wistia_engagement/, and
+  wistia_events/ each still become separate, independently queryable
+  tables under one crawler.
+
+  No placeholder-code ordering constraint here, unlike the Glue transform
+  jobs - a crawler has no script dependency, so this stack can be created
+  any time regardless of CI/CD state.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: insightflow
+    Description: Must match the prefix used in foundation.yaml.
+
+Resources:
+
+  InsightFlowDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: !Ref ProjectName
+        Description: InsightFlow processed-layer tables (CRM, Calendly, Wistia).
+
+  ProcessedCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: !Sub "${ProjectName}-processed-crawler"
+      Role: !ImportValue
+        Fn::Sub: "${ProjectName}-glue-crawler-role-arn"
+      DatabaseName: !Ref InsightFlowDatabase
+      Targets:
+        S3Targets:
+          - Path: !Sub
+              - "s3://${BucketName}/processed/"
+              - BucketName: !ImportValue
+                  Fn::Sub: "${ProjectName}-bucket-name"
+      Schedule:
+        # Daily is plenty - processed/ table SCHEMA is stable even though
+        # the transform jobs refresh data every 30 min / 6 hrs. This
+        # crawler is about registering/updating schema, not moving data.
+        ScheduleExpression: "cron(0 6 * * ? *)"
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: LOG # never auto-delete a table just because a crawl run found it temporarily empty
+
+Outputs:
+  DatabaseName:
+    Value: !Ref InsightFlowDatabase
+  CrawlerName:
+    Value: !Ref ProcessedCrawler
