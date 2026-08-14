@@ -37,9 +37,42 @@ Resources:
         Fn::Sub: "${ProjectName}-glue-crawler-role-arn"
       DatabaseName: !Ref InsightFlowDatabase
       Targets:
+        # Explicit, separate targets - one per actual table - rather than
+        # a single target at the processed/ parent. Discovered the hard
+        # way: pointing one S3Target at processed/ and relying on
+        # CombineCompatibleSchemas to correctly split subfolders into
+        # distinct tables instead merged all six into a single table
+        # named "processed", with the subfolder names becoming a
+        # partition value rather than separate tables - a documented Glue
+        # crawler pitfall (see docs.aws.amazon.com/athena/latest/ug/
+        # schema-crawlers-data-sources.html). Explicit per-table targets
+        # remove the ambiguity entirely; CombineCompatibleSchemas still
+        # does its job WITHIN each target, correctly merging the many
+        # individual per-lead files in crm_leads_enriched/ into one table
+        # rather than one-table-per-file.
         S3Targets:
           - Path: !Sub
-              - "s3://${BucketName}/processed/"
+              - "s3://${BucketName}/processed/crm_leads_enriched/"
+              - BucketName: !ImportValue
+                  Fn::Sub: "${ProjectName}-bucket-name"
+          - Path: !Sub
+              - "s3://${BucketName}/processed/calendly_bookings/"
+              - BucketName: !ImportValue
+                  Fn::Sub: "${ProjectName}-bucket-name"
+          - Path: !Sub
+              - "s3://${BucketName}/processed/calendly_spend/"
+              - BucketName: !ImportValue
+                  Fn::Sub: "${ProjectName}-bucket-name"
+          - Path: !Sub
+              - "s3://${BucketName}/processed/wistia_media_metadata/"
+              - BucketName: !ImportValue
+                  Fn::Sub: "${ProjectName}-bucket-name"
+          - Path: !Sub
+              - "s3://${BucketName}/processed/wistia_engagement/"
+              - BucketName: !ImportValue
+                  Fn::Sub: "${ProjectName}-bucket-name"
+          - Path: !Sub
+              - "s3://${BucketName}/processed/wistia_events/"
               - BucketName: !ImportValue
                   Fn::Sub: "${ProjectName}-bucket-name"
       # Without this, Glue's crawler does NOT reliably group files with
