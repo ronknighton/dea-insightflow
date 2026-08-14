@@ -42,6 +42,18 @@ Resources:
               - "s3://${BucketName}/processed/"
               - BucketName: !ImportValue
                   Fn::Sub: "${ProjectName}-bucket-name"
+      # Without this, Glue's crawler does NOT reliably group files with
+      # even slightly varying schemas into one table - by default it can
+      # create a separate table per FILE rather than per folder. This bit
+      # in production: processed/crm_leads_enriched/ has one small file
+      # per lead (hundreds by now, each independently written, with
+      # nullable-field typing that can vary lead to lead depending on
+      # whether an owner match was found) - without this setting, a first
+      # deploy of this crawler produced 460 tables instead of the
+      # expected 6, one per processed/ subfolder.
+      Configuration: >-
+        {"Version": 1.0, "Grouping": {"TableGroupingPolicy": "CombineCompatibleSchemas"},
+        "CrawlerOutput": {"Partitions": {"AddOrUpdateBehavior": "InheritFromTable"}}}
       Schedule:
         # Daily is plenty - processed/ table SCHEMA is stable even though
         # the transform jobs refresh data every 30 min / 6 hrs. This
