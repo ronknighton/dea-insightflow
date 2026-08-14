@@ -8,24 +8,37 @@ Responsibilities, per Section 7 of the InsightFlow Solution Design doc:
      HMAC-SHA256 scheme: t=<timestamp>,v1=<hex signature>, signed over
      "{timestamp}.{raw_body}" - see
      https://developer.calendly.com/api-docs/webhook-signatures).
-  2. Filter to the three tracked paid-ad channels (Facebook, YouTube,
-     TikTok). Untracked event types are acknowledged (200) but not written -
-     mirrors the CRM webhook's "ignore, don't error" handling for events
-     outside this pipeline's scope.
-  3. Write the raw, unmodified event to S3
+  2. Write the raw, unmodified event to S3
      raw/calendly_webhook_events/dt=YYYY-MM-DD/invitee_{invitee_id}.json.
      Unlike CRM, there is no delay/lookup step downstream - the join to
      spend data happens later in Glue/Athena, not per-event here.
 
+REVISED (Aug 14, 2026) - channel filtering moved OUT of this Lambda: an
+earlier version rejected/discarded events whose channel couldn't be
+matched to the three tracked paid-ad types before ever writing to raw/.
+That silently lost every real Calendly booking once real traffic started
+arriving - the channel-matching guess (see ASSUMPTION FLAGGED below) was
+wrong for real payloads, and because the reject happened before the S3
+write, there was no artifact left to even diagnose what the real payload
+looked like. This violates the same "raw stays an untouched, complete
+mirror" principle every other source in this project follows (CRM,
+Wistia). Channel is now purely informational at this layer - logged, and
+included (possibly as null) in the response - never a reason to skip the
+write. Classification belongs in the Glue transform job
+(glue_jobs/calendly_transform/script.py), which already re-derives it
+independently and can be corrected/backfilled against already-landed raw
+data, unlike a one-shot ingestion-time decision.
+
 ASSUMPTION FLAGGED: the exact JSON path Calendly uses to carry the
 Facebook/YouTube/TikTok channel tag (tracking.utm_campaign vs. a custom
 question/answer vs. something else) was not confirmed against a real
-sample payload from the requirements doc at the time this was written.
-_extract_channel() below checks the most likely locations and logs a
-warning (without failing the request) if none matches, specifically so
-this gap surfaces in CloudWatch on the first real webhook rather than
-silently mis-filtering events. Verify against a live payload and tighten
-this function before the 7-day operational window begins.
+sample payload from the requirements doc at the time this was written,
+and is now confirmed NOT to match real traffic (see REVISED note above -
+this is exactly what caused the data loss). _extract_channel() below still
+checks the most likely locations and logs a warning if none matches, but
+no longer gates the write. Now that raw events are landing regardless,
+inspect a real payload and fix this function (and its twin in the Glue
+transform script) against real data.
 
 Environment variables (set by the deploying stack, never hardcoded):
   SIGNING_SECRET_ARN           - Secrets Manager ARN of the Calendly signing secret
@@ -188,16 +201,18 @@ def lambda_handler(event, context):
 
     channel = _extract_channel(event_body)
     if channel is None:
+        # NO LONGER a reason to skip writing raw - see REVISED note in
+        # module docstring. Channel is still logged and included in the
+        # eventual raw JSON body itself (whatever Calendly actually sent),
+        # but classification decisions belong in the Glue transform layer,
+        # not at ingestion - raw must stay a complete, unfiltered mirror.
         logger.warning(
-            "Could not determine channel for event %s - see ASSUMPTION FLAGGED note "
-            "in module docstring; acknowledging without processing",
+            "Could not determine channel for event %s - writing to raw/ anyway; "
+            "channel classification happens at transform time, not ingestion",
             event_body.get("event"),
         )
-        return {"statusCode": 200, "body": json.dumps({"status": "ignored", "reason": "unrecognized channel"})}
-
-    if channel not in TRACKED_EVENT_TYPES:
-        logger.info("Event channel %s is not tracked - acknowledging without processing", channel)
-        return {"statusCode": 200, "body": json.dumps({"status": "ignored", "reason": "untracked channel"})}
+    elif channel not in TRACKED_EVENT_TYPES:
+        logger.info("Event channel %s is not in the tracked set - writing to raw/ anyway", channel)
 
     invitee_id = _extract_invitee_id(event_body)
     if not invitee_id:
