@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  InsightFlow Wistia transform job: AWS Glue Python Shell job that reads
+  raw Wistia media metadata, engagement snapshots, and visitor events, and
+  writes three clean Parquet tables to processed/ (deliberately split from
+  the single "wistia_engagement" table sketched in Section 5 of the design
+  doc - see glue_jobs/wistia_transform/script.py for why). Same
+  script-must-exist-in-S3-before-stack-creation constraint as
+  calendly-transform-job.yaml - deploy order matters, see that template's
+  description for the full explanation.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: insightflow
+    Description: Must match the prefix used in foundation.yaml.
+
+Resources:
+
+  WistiaTransformJob:
+    Type: AWS::Glue::Job
+    Properties:
+      Name: !Sub "${ProjectName}-wistia-transform"
+      Role: !ImportValue
+        Fn::Sub: "${ProjectName}-glue-transform-role-arn"
+      Command:
+        Name: pythonshell
+        PythonVersion: "3.9"
+        ScriptLocation: !Sub
+          - "s3://${BucketName}/glue-scripts/wistia_transform/script.py"
+          - BucketName: !ImportValue
+              Fn::Sub: "${ProjectName}-bucket-name"
+      DefaultArguments:
+        "--BUCKET_NAME": !ImportValue
+          Fn::Sub: "${ProjectName}-bucket-name"
+      MaxCapacity: 0.0625
+      MaxRetries: 1
+      Timeout: 30
+
+  SchedulerInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-wistia-transform-scheduler-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: scheduler.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: start-wistia-transform-job
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: glue:StartJobRun
+                Resource: !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:job/${WistiaTransformJob}"
+
+  # Runs every 6 hours, matching the Wistia ingestion Lambda's own
+  # schedule (infrastructure/wistia.yaml) - no point transforming more
+  # often than new raw data can possibly arrive.
+  WistiaTransformSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: !Sub "${ProjectName}-wistia-transform-schedule"
+      ScheduleExpression: "rate(6 hours)"
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Target:
+        Arn: "arn:aws:scheduler:::aws-sdk:glue:startJobRun"
+        RoleArn: !GetAtt SchedulerInvokeRole.Arn
+        Input: !Sub '{"JobName": "${WistiaTransformJob}"}'
+
+Outputs:
+  WistiaTransformJobName:
+    Value: !Ref WistiaTransformJob
