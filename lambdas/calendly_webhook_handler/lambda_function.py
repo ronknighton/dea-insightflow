@@ -29,16 +29,20 @@ write. Classification belongs in the Glue transform job
 independently and can be corrected/backfilled against already-landed raw
 data, unlike a one-shot ingestion-time decision.
 
-ASSUMPTION FLAGGED: the exact JSON path Calendly uses to carry the
-Facebook/YouTube/TikTok channel tag (tracking.utm_campaign vs. a custom
-question/answer vs. something else) was not confirmed against a real
-sample payload from the requirements doc at the time this was written,
-and is now confirmed NOT to match real traffic (see REVISED note above -
-this is exactly what caused the data loss). _extract_channel() below still
-checks the most likely locations and logs a warning if none matches, but
-no longer gates the write. Now that raw events are landing regardless,
-inspect a real payload and fix this function (and its twin in the Glue
-transform script) against real data.
+RESOLVED (Aug 14, 2026): checked against two real captured payloads. The
+field path guess was actually correct - tracking.utm_campaign and
+tracking.utm_source ARE the real fields Calendly uses; both real samples
+had them present as keys, just set to null. That null is legitimate, not
+a bug: Calendly only populates these when an invitee arrives via a link
+carrying UTM query params, and both real samples so far look like
+organic/referred bookings ("Check-in with coach", a breakthrough session
+follow-up), not paid-ad traffic - no ad click, no UTM params, no channel
+to report. _extract_channel() is therefore trusted as-is; what changed is
+the log severity below (WARNING -> INFO), since an unresolved channel is
+expected routine behavior for non-ad-sourced bookings, not an anomaly.
+Still genuinely unconfirmed: whether a real ad-driven booking populates
+these fields with a value that actually matches TRACKED_EVENT_TYPES -
+no positive example seen yet, only two null ones.
 
 Environment variables (set by the deploying stack, never hardcoded):
   SIGNING_SECRET_ARN           - Secrets Manager ARN of the Calendly signing secret
@@ -202,13 +206,16 @@ def lambda_handler(event, context):
     channel = _extract_channel(event_body)
     if channel is None:
         # NO LONGER a reason to skip writing raw - see REVISED note in
-        # module docstring. Channel is still logged and included in the
-        # eventual raw JSON body itself (whatever Calendly actually sent),
-        # but classification decisions belong in the Glue transform layer,
+        # module docstring. INFO, not WARNING: a null channel is expected,
+        # routine behavior for organic/referred bookings with no UTM
+        # params on the link, not an anomaly - confirmed against two real
+        # payloads, both non-ad-sourced. Channel is still logged and
+        # included in the eventual raw JSON body itself, but
+        # classification decisions belong in the Glue transform layer,
         # not at ingestion - raw must stay a complete, unfiltered mirror.
-        logger.warning(
-            "Could not determine channel for event %s - writing to raw/ anyway; "
-            "channel classification happens at transform time, not ingestion",
+        logger.info(
+            "No channel on event %s (likely organic/referred, not ad-sourced) - "
+            "writing to raw/ regardless; classification happens at transform time",
             event_body.get("event"),
         )
     elif channel not in TRACKED_EVENT_TYPES:
