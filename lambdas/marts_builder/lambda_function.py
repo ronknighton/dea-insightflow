@@ -46,6 +46,21 @@ matters for the SQL below:
 Every mart below should be spot-checked against its first real run before
 being trusted for reporting - this is genuinely new, unverified SQL.
 
+CONFIRMED AGAINST LIVE DATA (Aug 15, 2026): calendly_bookings.channel got
+cataloged as INTEGER, not VARCHAR - a direct consequence of every real
+Calendly booking so far having channel=None. With 100% null values,
+pyarrow has no actual string data to infer a type from and can default to
+something else entirely (a well-documented Parquet/pyarrow quirk, not a
+bug in this project's code specifically). Every query below that
+compares or coalesces calendly_bookings.channel wraps it in
+CAST(channel AS VARCHAR) defensively - this protects against the type
+mismatch regardless of what the catalog says, and costs nothing once
+real string channel values eventually appear. The actual root cause is
+also fixed at the source in glue_jobs/calendly_transform/script.py
+(explicit dtype forcing), but the defensive CAST here stays either way -
+belt and suspenders, given how this exact quirk could recur for any
+other currently-all-null column (e.g. campaign_raw).
+
 Job parameters come from environment variables (standard Lambda config,
 not Glue-style --KEY value args):
   GLUE_DATABASE           - Glue Catalog database name (default: insightflow)
@@ -78,10 +93,10 @@ MART_QUERIES = {
     "daily_calls_booked_by_source": """
         SELECT
             CAST(booked_at AS DATE) AS booking_date,
-            COALESCE(channel, 'organic_unknown') AS source,
+            COALESCE(CAST(channel AS VARCHAR), 'organic_unknown') AS source,
             COUNT(booking_id) AS bookings
         FROM calendly_bookings
-        GROUP BY CAST(booked_at AS DATE), COALESCE(channel, 'organic_unknown')
+        GROUP BY CAST(booked_at AS DATE), COALESCE(CAST(channel AS VARCHAR), 'organic_unknown')
     """,
     "cost_per_booking_by_channel": """
         SELECT
@@ -91,34 +106,34 @@ MART_QUERIES = {
             SUM(s.spend) / NULLIF(COUNT(DISTINCT b.booking_id), 0) AS cost_per_booking
         FROM calendly_spend s
         LEFT JOIN calendly_bookings b
-            ON b.channel = s.channel
+            ON CAST(b.channel AS VARCHAR) = s.channel
            AND CAST(b.booked_at AS DATE) = s.date
         GROUP BY s.channel
     """,
     "bookings_trend_over_time": """
         SELECT
             CAST(booked_at AS DATE) AS booking_date,
-            COALESCE(channel, 'organic_unknown') AS source,
+            COALESCE(CAST(channel AS VARCHAR), 'organic_unknown') AS source,
             COUNT(booking_id) AS bookings,
             SUM(COUNT(booking_id)) OVER (
-                PARTITION BY COALESCE(channel, 'organic_unknown')
+                PARTITION BY COALESCE(CAST(channel AS VARCHAR), 'organic_unknown')
                 ORDER BY CAST(booked_at AS DATE)
             ) AS cumulative_bookings
         FROM calendly_bookings
-        GROUP BY CAST(booked_at AS DATE), COALESCE(channel, 'organic_unknown')
+        GROUP BY CAST(booked_at AS DATE), COALESCE(CAST(channel AS VARCHAR), 'organic_unknown')
     """,
     "channel_attribution": """
         SELECT
-            COALESCE(b.channel, 'organic_unknown') AS source,
+            COALESCE(CAST(b.channel AS VARCHAR), 'organic_unknown') AS source,
             b.campaign_raw AS campaign,
             COUNT(b.booking_id) AS bookings,
             COALESCE(SUM(s.spend), 0) AS total_spend,
             COALESCE(SUM(s.spend), 0) / NULLIF(COUNT(b.booking_id), 0) AS cost_per_booking
         FROM calendly_bookings b
         LEFT JOIN calendly_spend s
-            ON b.channel = s.channel
+            ON CAST(b.channel AS VARCHAR) = s.channel
            AND CAST(b.booked_at AS DATE) = s.date
-        GROUP BY COALESCE(b.channel, 'organic_unknown'), b.campaign_raw
+        GROUP BY COALESCE(CAST(b.channel AS VARCHAR), 'organic_unknown'), b.campaign_raw
     """,
     "booking_volume_by_timeslot": """
         SELECT
@@ -141,17 +156,17 @@ MART_QUERIES = {
     """,
     "channel_performance_summary": """
         SELECT
-            COALESCE(b.channel, 'organic_unknown') AS channel,
+            b.channel,
             b.booking_date,
             b.bookings,
             COALESCE(l.leads_created, 0) AS leads_created
         FROM (
             SELECT
-                COALESCE(channel, 'organic_unknown') AS channel,
+                COALESCE(CAST(channel AS VARCHAR), 'organic_unknown') AS channel,
                 CAST(booked_at AS DATE) AS booking_date,
                 COUNT(booking_id) AS bookings
             FROM calendly_bookings
-            GROUP BY COALESCE(channel, 'organic_unknown'), CAST(booked_at AS DATE)
+            GROUP BY COALESCE(CAST(channel AS VARCHAR), 'organic_unknown'), CAST(booked_at AS DATE)
         ) b
         LEFT JOIN (
             SELECT

@@ -154,6 +154,49 @@ def test_get_job_param_parses_argv():
     print("PASS: job parameters parsed correctly from --KEY value argv pairs")
 
 
+@patch.object(sc, "s3_client")
+def test_all_null_channel_column_still_typed_as_string(mock_s3):
+    """
+    Regression test for a real production failure (Aug 15, 2026): every
+    real Calendly booking captured so far has channel=None. Without
+    forcing pandas' nullable "string" dtype, an all-null column gives
+    pyarrow no actual data to infer a type from, and it can default to
+    something else entirely - this got cataloged as INTEGER in Glue,
+    breaking every marts-layer query that compared or coalesced the
+    column against a real string value (TYPE_MISMATCH errors in Athena).
+    This test uses two events with genuinely all-null channel/tracking,
+    mirroring the real captured payloads, not a synthetic positive case.
+    """
+    mock_paginator = MagicMock()
+    mock_paginator.paginate.return_value = [
+        {"Contents": [
+            {"Key": "raw/calendly_webhook_events/dt=2026-08-14/a.json"},
+            {"Key": "raw/calendly_webhook_events/dt=2026-08-14/b.json"},
+        ]}
+    ]
+    mock_s3.get_paginator.return_value = mock_paginator
+
+    all_null_channel_event = {
+        "payload": {
+            "uri": "https://api.calendly.com/scheduled_events/x/invitees/y",
+            "created_at": "2026-08-14T21:16:18.504977Z",
+            "tracking": {"utm_campaign": None, "utm_source": None},
+            "scheduled_event": {"event_memberships": []},
+        }
+    }
+    mock_s3.get_object.return_value = {
+        "Body": MagicMock(read=lambda: json.dumps(all_null_channel_event).encode("utf-8"))
+    }
+
+    df = sc.transform_bookings("test-bucket")
+
+    assert len(df) == 2
+    assert df["channel"].isna().all()  # confirms this really is the all-null case being tested
+    assert str(df["channel"].dtype) == "string"  # pandas' nullable StringDtype, not generic "object"
+    assert str(df["campaign_raw"].dtype) == "string"
+    print("PASS: all-null channel/campaign_raw columns are forced to string dtype, not left to pyarrow inference")
+
+
 if __name__ == "__main__":
     test_flatten_real_sample_booking_event()
     test_flatten_spend_records()
@@ -161,4 +204,5 @@ if __name__ == "__main__":
     test_transform_bookings_reads_all_pages_and_types_dates()
     test_transform_bookings_skips_unreadable_file_without_failing_the_run()
     test_get_job_param_parses_argv()
+    test_all_null_channel_column_still_typed_as_string()
     print("\nAll tests passed.")
