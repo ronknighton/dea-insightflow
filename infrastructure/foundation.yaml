@@ -431,6 +431,87 @@ Resources:
                   - logs:PutLogEvents
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws-glue/*"
 
+  # 8. Marts builder Lambda: runs CTAS queries against Athena to compute
+  #    the business metrics in marts/, per Section 9/10 of the design doc.
+  MartsBuilderLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-marts-builder-lambda-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: marts-builder-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: RunAthenaQueries
+                Effect: Allow
+                Action:
+                  - athena:StartQueryExecution
+                  - athena:GetQueryExecution
+                  - athena:GetQueryResults
+                  - athena:StopQueryExecution
+                Resource: !Sub "arn:aws:athena:${AWS::Region}:${AWS::AccountId}:workgroup/${ProjectName}-workgroup"
+              - Sid: ListBucketForCtasAndCleanup
+                # ListBucket included from the start this time - the CRM
+                # consumer's 403-masking-404 debugging session earlier in
+                # this project made clear this is needed for HeadObject/
+                # object-existence checks, and CTAS's drop-and-delete-
+                # before-recreate pattern needs to list marts/ objects to
+                # delete them.
+                Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt DataBucket.Arn
+                Condition:
+                  StringLike:
+                    s3:prefix:
+                      - "processed/*"
+                      - "marts/*"
+                      - "athena-results/*"
+              - Sid: ReadProcessedForQueries
+                Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub "${DataBucket.Arn}/processed/*"
+              - Sid: ReadWriteDeleteMarts
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Sub "${DataBucket.Arn}/marts/*"
+              - Sid: ReadWriteAthenaResults
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: !Sub "${DataBucket.Arn}/athena-results/*"
+              - Sid: GlueCatalogReadWrite
+                Effect: Allow
+                Action:
+                  - glue:GetDatabase
+                  - glue:GetTable
+                  - glue:GetTables
+                  - glue:GetPartitions
+                  - glue:CreateTable
+                  - glue:UpdateTable
+                  - glue:DeleteTable
+                  - glue:BatchCreatePartition
+                Resource:
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:catalog"
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/${ProjectName}*"
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:table/${ProjectName}*/*"
+              - Sid: WriteLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-marts_builder*"
+
 Outputs:
   BucketName:
     Value: !Ref DataBucket
@@ -468,6 +549,9 @@ Outputs:
   GlueCrawlerRoleArn:
     Value: !GetAtt GlueCrawlerRole.Arn
     Export: { Name: !Sub "${ProjectName}-glue-crawler-role-arn" }
+  MartsBuilderLambdaRoleArn:
+    Value: !GetAtt MartsBuilderLambdaRole.Arn
+    Export: { Name: !Sub "${ProjectName}-marts-builder-lambda-role-arn" }
   CrmWebhookSigningSecretArn:
     Value: !Ref CrmWebhookSigningSecret
     Export: { Name: !Sub "${ProjectName}-crm-webhook-signing-secret-arn" }
