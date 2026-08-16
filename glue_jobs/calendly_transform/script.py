@@ -148,6 +148,19 @@ def transform_bookings(bucket: str) -> pd.DataFrame:
         df["booked_at"] = pd.to_datetime(df["booked_at"], errors="coerce", utc=True)
         df["meeting_start_time"] = pd.to_datetime(df["meeting_start_time"], errors="coerce", utc=True)
         df["meeting_end_time"] = pd.to_datetime(df["meeting_end_time"], errors="coerce", utc=True)
+        # Explicit string dtype, not left to pyarrow's inference. Root
+        # cause of a real production failure (Aug 15, 2026): with every
+        # real booking captured so far having channel=None, a column
+        # that's 100% null gives pyarrow no actual string data to infer a
+        # type from - it defaulted to something else entirely (cataloged
+        # as INTEGER), breaking every marts-layer query that compared or
+        # coalesced this column against a real string value. pandas'
+        # nullable "string" dtype has a well-defined pyarrow mapping
+        # regardless of null content, unlike generic "object" dtype.
+        # campaign_raw mirrors utm_campaign and is equally all-null right
+        # now, so it gets the same treatment defensively.
+        df["channel"] = df["channel"].astype("string")
+        df["campaign_raw"] = df["campaign_raw"].astype("string")
     return df
 
 
