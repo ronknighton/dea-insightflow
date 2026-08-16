@@ -25,7 +25,17 @@ Resources:
             - "s3://${BucketName}/athena-results/"
             - BucketName: !ImportValue
                 Fn::Sub: "${ProjectName}-bucket-name"
-        EnforceWorkGroupConfiguration: true
+        # false, not true: enforcing the workgroup's centralized output
+        # location blocks any query from specifying its own
+        # 'external_location' - which is exactly what the marts builder's
+        # CTAS statements need, since each mart is meant to land in its
+        # own dedicated marts/<name>/ prefix, not all pile into one
+        # shared location. Confirmed by hitting this exact error in
+        # production on the first real run: "Please remove the
+        # 'external_location' property and resubmit the query." The
+        # OutputLocation above still serves as the default for the DROP
+        # TABLE statements and any query that doesn't specify its own.
+        EnforceWorkGroupConfiguration: false
         PublishCloudWatchMetricsEnabled: true
 
   MartsBuilderFunction:
