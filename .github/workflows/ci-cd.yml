@@ -29,6 +29,7 @@ jobs:
           - crm_consumer_handler
           - calendly_spend_handler
           - wistia_handler
+          - marts_builder
     steps:
       - uses: actions/checkout@v4
 
@@ -103,6 +104,7 @@ jobs:
           - crm_consumer_handler
           - calendly_spend_handler
           - wistia_handler
+          - marts_builder
     steps:
       - uses: actions/checkout@v4
 

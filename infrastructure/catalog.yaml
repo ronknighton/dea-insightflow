@@ -99,5 +99,6 @@ Resources:
 Outputs:
   DatabaseName:
     Value: !Ref InsightFlowDatabase
+    Export: { Name: !Sub "${ProjectName}-catalog-database-name" }
   CrawlerName:
     Value: !Ref ProcessedCrawler

@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  InsightFlow marts layer: an Athena workgroup (query result staging) and
+  the marts builder Lambda that runs CTAS queries to compute the Section
+  9/10 business metrics. Requires infrastructure/catalog.yaml to already
+  be deployed (this Lambda queries tables in the insightflow Glue
+  database that catalog.yaml creates) - deploy order matters.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: insightflow
+    Description: Must match the prefix used in foundation.yaml.
+
+Resources:
+
+  AthenaWorkgroup:
+    Type: AWS::Athena::WorkGroup
+    Properties:
+      Name: !Sub "${ProjectName}-workgroup"
+      Description: Dedicated workgroup for InsightFlow marts CTAS queries and ad-hoc analysis.
+      WorkGroupConfiguration:
+        ResultConfiguration:
+          OutputLocation: !Sub
+            - "s3://${BucketName}/athena-results/"
+            - BucketName: !ImportValue
+                Fn::Sub: "${ProjectName}-bucket-name"
+        EnforceWorkGroupConfiguration: true
+        PublishCloudWatchMetricsEnabled: true
+
+  MartsBuilderFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-marts_builder"
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !ImportValue
+        Fn::Sub: "${ProjectName}-marts-builder-lambda-role-arn"
+      Timeout: 300 # 5 min - 7 sequential CTAS queries, each with drop+delete+create, at this small data volume
+      MemorySize: 128
+      Environment:
+        Variables:
+          GLUE_DATABASE: !ImportValue
+            Fn::Sub: "${ProjectName}-catalog-database-name"
+          BUCKET_NAME: !ImportValue
+            Fn::Sub: "${ProjectName}-bucket-name"
+          ATHENA_WORKGROUP: !Ref AthenaWorkgroup
+          ATHENA_RESULTS_LOCATION: !Sub
+            - "s3://${BucketName}/athena-results/"
+            - BucketName: !ImportValue
+                Fn::Sub: "${ProjectName}-bucket-name"
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {"results": [], "note": "placeholder - real code not yet deployed"}
+
+  MartsBuilderFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-marts_builder"
+      RetentionInDays: 30
+
+  SchedulerInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-marts-builder-scheduler-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: scheduler.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: invoke-marts-builder-function
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt MartsBuilderFunction.Arn
+
+  # Runs a couple hours after the Glue crawler's daily 6 AM UTC schedule
+  # (infrastructure/catalog.yaml) - marts need the catalog to already
+  # reflect any schema changes in processed/ before querying it.
+  MartsBuilderSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: !Sub "${ProjectName}-marts-builder-schedule"
+      ScheduleExpression: "cron(0 8 * * ? *)"
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Target:
+        Arn: !GetAtt MartsBuilderFunction.Arn
+        RoleArn: !GetAtt SchedulerInvokeRole.Arn
+
+Outputs:
+  MartsBuilderFunctionName:
+    Value: !Ref MartsBuilderFunction
+  AthenaWorkgroupName:
+    Value: !Ref AthenaWorkgroup
