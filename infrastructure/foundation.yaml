@@ -456,6 +456,19 @@ Resources:
                   - athena:GetQueryResults
                   - athena:StopQueryExecution
                 Resource: !Sub "arn:aws:athena:${AWS::Region}:${AWS::AccountId}:workgroup/${ProjectName}-workgroup"
+              - Sid: GetBucketLocationForAthena
+                # Distinct, bucket-level permission Athena requires before
+                # it will run ANY query - not covered by ListBucket or
+                # object-level Get/Put. Athena uses this to confirm which
+                # region the output bucket lives in. Missing this produces
+                # "InvalidRequestException: Unable to verify/create output
+                # bucket" on every single query, at the very first API
+                # call, before any SQL is even evaluated - a well-
+                # documented, common gap, confirmed against this exact
+                # error message hit in production on the first real run.
+                Effect: Allow
+                Action: s3:GetBucketLocation
+                Resource: !GetAtt DataBucket.Arn
               - Sid: ListBucketForCtasAndCleanup
                 # ListBucket included from the start this time - the CRM
                 # consumer's 403-masking-404 debugging session earlier in
