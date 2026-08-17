@@ -1,0 +1,1056 @@
+ronknighton  [12:04 PM]
+added an integration to this channel: InsightFlow AlertsInsightFlow Alerts  [2:04 PM]
+New CRM Lead
+Name: Test Corp
+Lead ID: test123
+Created: 2026-08-10T12:00:00.000000
+Status: Potential
+Email: pending
+Owner: pending (not yet assigned)
+Funnel: unknownInsightFlow Alerts  [10:06 AM]
+New CRM Lead
+Name: Wesley Hawes
+Lead ID: lead_gmpflNNZirKMf14tQ4LZEw4DZ793C1XKn6x3FmrM9ve
+Created: 2026-08-11T18:25:21.356000+00:00
+Status: Potential
+Email: wesley.r.hawes@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:06 AM]New CRM Lead
+Name: Chris Pulec
+Lead ID: lead_VwWHOSoI02gdKp5Aq3zuY9BWv5JffqNkUAaQ87s2ZtJ
+Created: 2026-08-11T17:45:28.513000+00:00
+Status: Potential
+Email: chris.pulec@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:06 AM]New CRM Lead
+Name: billy.a.holloway@gmail.com
+Lead ID: lead_HniIpnEmM7qbWTDBzueAyXGyLTM6SZU2NMyBqT6JMbJ
+Created: 2026-08-12T13:55:57.213000+00:00
+Status: Potential
+Email: pending
+Owner: pending (not yet assigned)
+Funnel: unknown[10:07 AM]New CRM Lead
+Name: Ken
+Lead ID: lead_HPBEb2e2GS73r7Xum3OhVuzEpEfvP9VHFW9hFNwcOH8
+Created: 2026-08-11T22:05:59.896000+00:00
+Status: Potential
+Email: kscott248@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:07 AM]New CRM Lead
+Name: Bradford Mason
+Lead ID: lead_vi0yk5kL4eIfEjbGhdrpUUkc78Qj2OC9xLQIkdV5CmC
+Created: 2026-08-12T13:11:59.037000+00:00
+Status: Potential
+Email: bradmason2505@gmail.com
+Owner: Chris Blanchette
+Funnel: DE ACADEMY Direct VSL[10:07 AM]New CRM Lead
+Name: Edrica Barchue
+Lead ID: lead_mHmBmw1t7jhOe7WZmsqNUK8LsTdF27Z6UFeyJbVBBXC
+Created: 2026-08-11T22:06:17.414000+00:00
+Status: Potential
+Email: ermine.nymph8085@eagereverest.com
+Owner: Ninad Magdum
+Funnel: New Data Career Accelerator - v1 - Paid Traffic Only[10:07 AM]New CRM Lead
+Name: Mohammed Alaadin
+Lead ID: lead_BXCIZQtVbqtwlGkfOaPeRtRflxKIkgGQjZohovi7Ggy
+Created: 2026-08-12T03:06:44.285000+00:00
+Status: Potential
+Email: alexalialaa88@gmail.com
+Owner: Zan Strmec
+Funnel: DE ACADEMY Direct VSL[10:07 AM]New CRM Lead
+Name: Lee
+Lead ID: lead_IcDysXY57dqC9ZXH7xFxlznpIyxBetSEsuIwjfV9mZ5
+Created: 2026-08-11T19:46:22.249000+00:00
+Status: Potential
+Email: zolling76@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:07 AM]New CRM Lead
+Name: Surj
+Lead ID: lead_JtWxstjz4TiXDUzoHeD1TBgc92HO4hJ2MSXtnZZsywR
+Created: 2026-08-12T13:56:28.428000+00:00
+Status: Potential
+Email: pending
+Owner: pending (not yet assigned)
+Funnel: unknown[10:07 AM]New CRM Lead
+Name: Elijah Cooper
+Lead ID: lead_ygMRlLu069ynHD8xCFHhl9gTFuLWJfBSmkLnnE9X6ov
+Created: 2026-08-11T22:06:32.180000+00:00
+Status: Potential
+Email: elicoop29@outlook.com
+Owner: Gregory Auguste
+Funnel: DE ACADEMY Direct VSL Multi Page Optin[10:07 AM]New CRM Lead
+Name: Hina Ansari
+Lead ID: lead_ewoOnPq41VWvcvh2CR5UUCtUqXINXvlEZUwpAnRYSC0
+Created: 2026-08-11T18:46:37.700000+00:00
+Status: Potential
+Email: hina.ansari@gmail.com
+Owner: Miguel Romero
+Funnel: DE ACADEMY Direct VSL[10:07 AM]New CRM Lead
+Name: Khurram
+Lead ID: lead_Dk2x1QMH3i2oOKVMy0HukVbaQFJZ6u66HzJU7u5NXzl
+Created: 2026-08-12T03:27:11.521000+00:00
+Status: Potential
+Email: khurram_abbas33@yahoo.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:07 AM]New CRM Lead
+Name: Dar
+Lead ID: lead_XsgxCLBvmBnlJz3mPauT5bSxj3GX6C19BBLXV0XzMR8
+Created: 2026-08-12T01:47:08.355000+00:00
+Status: Potential
+Email: darshan.it.ba@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:07 AM]New CRM Lead
+Name: Thomas
+Lead ID: lead_H4dBiXuH2Mqg4d5Wn7mH1fbQB9AnRrku0Wcdgi7Cg6K
+Created: 2026-08-12T03:27:17.112000+00:00
+Status: Potential
+Email: kongkunin@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:08 AM]New CRM Lead
+Name: Kurtis Harrison
+Lead ID: lead_T9Iv3Awb1QbqrdcUwUs9n0qjXzfhtgwYan7Xj4T7rhN
+Created: 2026-08-12T13:58:04.183000+00:00
+Status: Potential
+Email: pending
+Owner: pending (not yet assigned)
+Funnel: unknown[10:08 AM]New CRM Lead
+Name: Shereka Sumpter
+Lead ID: lead_ue7TCQ4MvgwEKa3AU0tabgqc5TwOIjwaoiGs4j4hfsC
+Created: 2026-08-12T11:41:48.156000+00:00
+Status: Potential
+Email: sherekadsumpter@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:08 AM]New CRM Lead
+Name: Wally
+Lead ID: lead_3eqpQkIYfhaJOxi4vByrEeET0xKfcvOoahc9uayq5UD
+Created: 2026-08-11T19:07:04.835000+00:00
+Status: Interested
+Email: wperez46@gmail.com
+Owner: Michael Mkrtichyan
+Funnel: None[10:08 AM]New CRM Lead
+Name: Amanda Meadows
+Lead ID: lead_ql0wLZHXq9tO8Y66XlQ62RCxrHxuSYn33n4SjiduDb2
+Created: 2026-08-12T12:12:57.133000+00:00
+Status: Potential
+Email: amandameadows@icloud.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:08 AM]New CRM Lead
+Name: Daryl Milan
+Lead ID: lead_wUKAflr0Ar009WThnoge9uGht4IHa9HNqZZeEvdaSTF
+Created: 2026-08-12T03:07:35.508000+00:00
+Status: Potential
+Email: dvm158@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:08 AM]New CRM Lead
+Name: Nicola Nucci
+Lead ID: lead_wSUFUXU9X21kLssezhU0Se0SDfoNusy5XjE5cz6dmfo
+Created: 2026-08-12T11:25:06.585000+00:00
+Status: Potential
+Email: nicolaone1@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:08 AM]New CRM Lead
+Name: Clement
+Lead ID: lead_mgOSUl4pAHy3oDla6z7Fu5nGLs230zxaS2jq52Cfcvs
+Created: 2026-08-12T12:52:23.303000+00:00
+Status: Potential
+Email: primetimeque5@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:08 AM]New CRM Lead
+Name: Vinay Gudela
+Lead ID: lead_KOFUwlHmIs4lZCiX69TMtP2ZBZwt9JojdMRVkYUgyRW
+Created: 2026-08-11T21:27:33.819000+00:00
+Status: Potential
+Email: vinay243545@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:09 AM]New CRM Lead
+Name: Will
+Lead ID: lead_MBFHA3BDFtHf4v8Im9Sd3Iuk0W6AXMBBOUgyDDO2EnR
+Created: 2026-08-12T05:08:27.934000+00:00
+Status: Potential
+Email: new37wr@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:09 AM]New CRM Lead
+Name: Ahmad Alhakeem
+Lead ID: lead_BZtIhdnuxHlIfQI4FXkTDK86CnSpPHrnDOLr223XydB
+Created: 2026-08-11T22:28:17.208000+00:00
+Status: Potential
+Email: aalhakeem14@yahoo.com
+Owner: Chris Blanchette
+Funnel: DE ACADEMY Direct VSL[10:09 AM]New CRM Lead
+Name: Tahjib (T)
+Lead ID: lead_x7StSOpQKb9lyqArGkdLpjRnKbpy377001g49fM6UPk
+Created: 2026-08-11T18:48:20.363000+00:00
+Status: Potential
+Email: tahossain43@gmail.com
+Owner: Kevin Hu
+Funnel: YT DE ACADEMY Direct VSL[10:09 AM]New CRM Lead
+Name: Jillian Crawford
+Lead ID: lead_fqhh2OxDAl44mu24RcLWMJU13Z5unzSx8wzYiNTL5ce
+Created: 2026-08-11T20:48:25.963000+00:00
+Status: Potential
+Email: jillian.tornbjerg@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:09 AM]New CRM Lead
+Name: Robert
+Lead ID: lead_Cwn5mNbM1o2tIGWlgL8L8kxLQ61uOfEGfIQDdAd174G
+Created: 2026-08-11T23:08:42.482000+00:00
+Status: Potential
+Email: uzabarobert@gmail.com
+Owner: Chris Blanchette
+Funnel: DE ACADEMY Direct VSL[10:09 AM]New CRM Lead
+Name: LOUIS ANTHONY HOFFPAUIR
+Lead ID: lead_iCjGc3SA2WPl7ODQLjVVUBlwkdBacatGh9l2OfJbGbY
+Created: 2026-08-11T21:08:37.255000+00:00
+Status: Potential
+Email: twons29@yahoo.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL Multi Page Optin[10:09 AM]New CRM Lead
+Name: Alfredo
+Lead ID: lead_gyooTxyyylpgNuk22iVATaFpCDYjIS3IH0LeJfUTq3h
+Created: 2026-08-12T12:41:37.520000+00:00
+Status: Potential
+Email: alfredobusiness@gmail.com
+Owner: Miguel Romero
+Funnel: DE ACADEMY Direct VSL[10:09 AM]New CRM Lead
+Name: Joe Hardin
+Lead ID: lead_1HZqgZwPIyaGV4fl0Q0DN4LwD6KB3OYmzvZFTk5DTAY
+Created: 2026-08-12T12:14:36.774000+00:00
+Status: Potential
+Email: joe@hardin.systems
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:09 AM]New CRM Lead
+Name: Tamara Melson
+Lead ID: lead_JlxeRgltNxbdNcjZwG5TiLWY47QH9eNlx2UCHdhRdwc
+Created: 2026-08-12T06:29:21.359000+00:00
+Status: Potential
+Email: tamhartman@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:09 AM]New CRM Lead
+Name: Emile
+Lead ID: lead_bPEBfEl4DFSIbWIq7mGPs5aYNRIyMVLk5MxMVD6GVFa
+Created: 2026-08-11T21:08:50.759000+00:00
+Status: Potential
+Email: fonguhemile@gmail.com
+Owner: Chris Blanchette
+Funnel: DE ACADEMY Direct VSL[10:09 AM]New CRM Lead
+Name: Roshan Hamal
+Lead ID: lead_qm242kk0zyA9Bzn1Dq2Lfe9k9kviQ3YeepPOlxt0zrO
+Created: 2026-08-12T00:29:07.983000+00:00
+Status: Potential
+Email: rhamal006@gmail.com
+Owner: Ninad Magdum
+Funnel: dea_labs[10:09 AM]New CRM Lead
+Name: Wenwood
+Lead ID: lead_8J1AGLWl48i6ZPDB2A1ZjQNeGGtd27bDtfmh9ogWkZZ
+Created: 2026-08-11T21:08:56.266000+00:00
+Status: Potential
+Email: jwenwood@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:10 AM]New CRM Lead
+Name: Thomas Moore
+Lead ID: lead_d64dRmyuH4g0gfAlkbIMcZy4uq4gFQ0VbJ2nwM56ANm
+Created: 2026-08-12T01:29:15.835000+00:00
+Status: Potential
+Email: t_moore2005@yahoo.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:10 AM]New CRM Lead
+Name: Adam Plagens
+Lead ID: lead_AYuOGqvrRkzOi296hxa4nwaXJcEVAMU9R1V6gxKHx5W
+Created: 2026-08-12T11:59:58.061000+00:00
+Status: Potential
+Email: adamplagens@gmail.com
+Owner: Ninad Magdum
+Funnel: New Data Career Accelerator - v1 - Paid Traffic Only[10:10 AM]New CRM Lead
+Name: Philan Pettigrew
+Lead ID: lead_R9C0NG4SVRqa5Rp7S2NHws87uvXRSrvjTYSdgnItKEC
+Created: 2026-08-11T22:49:27.567000+00:00
+Status: Potential
+Email: philanp29@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:10 AM]New CRM Lead
+Name: Tommy Moua
+Lead ID: lead_o9M03GD3E50FyZHnx8ZQzUgbOqkKSlCrE9G7mGULTOh
+Created: 2026-08-11T19:29:13.728000+00:00
+Status: Potential
+Email: nitroeh@live.com
+Owner: Ninad Magdum
+Funnel: New Data Career Accelerator - v1 - Paid Traffic Only[10:10 AM]New CRM Lead
+Name: Amar Nafie
+Lead ID: lead_EU82T6XPT9VmqrKdzeyFd9gknZ8BokUS9axNjcsMHvq
+Created: 2026-08-12T06:09:56.506000+00:00
+Status: Potential
+Email: nafieamar@hotmail.com
+Owner: Chris Blanchette
+Funnel: DE ACADEMY Direct VSL[10:10 AM]New CRM Lead
+Name: Elizabeth Duquaine
+Lead ID: lead_OeXFzNtFV7LgWZzz9eDzI56zuFsWWlUvirGdoEYgjZa
+Created: 2026-08-12T13:39:27.679000+00:00
+Status: Potential
+Email: eduquaine@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:10 AM]New CRM Lead
+Name: Jose Hernandez
+Lead ID: lead_JnMpkybWm7YtCvhHq31MqbhwHam1bbUcxHO2NNHaqC5
+Created: 2026-08-11T20:49:32.802000+00:00
+Status: Potential
+Email: josehernandeztech33@gmail.com
+Owner: Ninad Magdum
+Funnel: New Data Career Accelerator - v1 - Paid Traffic Only[10:10 AM]New CRM Lead
+Name: Adesoji Taiwo
+Lead ID: lead_qOwv3GdjG8Cbq1ULA0w85jlagey49jIGrdwb2QecDHi
+Created: 2026-08-12T11:09:24.521000+00:00
+Status: Potential
+Email: willtaiwo@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:10 AM]New CRM Lead
+Name: C
+Lead ID: lead_iHLk93kSh7A8ZgXoQH0yYt92lnPCcj3jcX4psYCCKg6
+Created: 2026-08-11T21:09:41.145000+00:00
+Status: Potential
+Email: catprosper1015@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:10 AM]New CRM Lead
+Name: LeAnne
+Lead ID: lead_uHymGmPF1APzafcHlBYC8yz6PjW8ON3O65ek9dYkb1K
+Created: 2026-08-11T22:29:47.727000+00:00
+Status: Potential
+Email: leanneeddington@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:10 AM]New CRM Lead
+Name: Christopher Trantham
+Lead ID: lead_RbC4cILEkhX8NEpXkZPfmfS6Npj5CiBgF1YGhXkK3o8
+Created: 2026-08-12T03:30:09.422000+00:00
+Status: Potential
+Email: taheezy426@gmail.com
+Owner: Zan Strmec
+Funnel: DE ACADEMY Direct VSL[10:10 AM]New CRM Lead
+Name: Anand
+Lead ID: lead_bhJDUqMHIApTAPkux5U0RgdrdzY2ctW4Fqku1a2b38A
+Created: 2026-08-12T06:10:18.125000+00:00
+Status: Potential
+Email: anandcpu@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:11 AM]New CRM Lead
+Name: Patrick kenneh
+Lead ID: lead_FCaLN4i8Fwp3bBv7ksSupvpDm8iqrbVqQmXyGWtBPy2
+Created: 2026-08-12T07:10:34.266000+00:00
+Status: Potential
+Email: kennehpatrick59@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:11 AM]New CRM Lead
+Name: Joseph Zacharzuk
+Lead ID: lead_V5PHlJJl66me8UbO5J7ARMlADnrCztYH1iweiABHjmV
+Created: 2026-08-11T20:50:06.560000+00:00
+Status: Potential
+Email: jzacharzuk@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:11 AM]New CRM Lead
+Name: Sai
+Lead ID: lead_lgR00jkGEbDfQRq1kTaTJorxnp3wiUXZLSHV6w7T2yX
+Created: 2026-08-12T13:06:10.675000+00:00
+Status: Potential
+Email: cvsai73@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:11 AM]New CRM Lead
+Name: Raul
+Lead ID: lead_UvOia21BCNGdVFELhOwvGDSILndXeym3zUqtHdUsU9z
+Created: 2026-08-12T13:16:12.337000+00:00
+Status: Potential
+Email: raulhernandezing@gmail.com
+Owner: Ninad Magdum
+Funnel: New Data Career Accelerator - v1 - Paid Traffic Only[10:11 AM]New CRM Lead
+Name: Mohamed
+Lead ID: lead_lcAdPzTAB0jFsbGldVT1Ab3qLnQgN1f2y6KVYTHtqKB
+Created: 2026-08-12T07:51:11.615000+00:00
+Status: Potential
+Email: nenno.dr.2015@gmail.com
+Owner: Chris Blanchette
+Funnel: DE ACADEMY Direct VSL[10:11 AM]New CRM Lead
+Name: Tim Brittan
+Lead ID: lead_XzyWL7Z5fUBpn3vjBig2bg3scPClWDmiu6P9TLgP6wJ
+Created: 2026-08-12T02:10:59.008000+00:00
+Status: Potential
+Email: timbrit33@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:11 AM]New CRM Lead
+Name: Jeff Laughlin
+Lead ID: lead_5ziHlmBbpBLabPh3eHN67fnDNe6f6bO8rUY8d5jkewa
+Created: 2026-08-11T21:50:42.745000+00:00
+Status: Potential
+Email: laughlingl@verizon.net
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:11 AM]New CRM Lead
+Name: Vinay kumar
+Lead ID: lead_59OmRgAMJFNqwNel4LLrWUIIfzuyfyA2GnhN7rzkSqz
+Created: 2026-08-12T03:11:04.058000+00:00
+Status: Potential
+Email: vinayreddygangula55@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:11 AM]New CRM Lead
+Name: Wendy Ruiz
+Lead ID: lead_aJE5v1LVevlsWFQ737WlnpUHSEKNl9RXtZ4ktAyEGDZ
+Created: 2026-08-12T00:51:00.075000+00:00
+Status: Potential
+Email: wendybiz369@gmail.com
+Owner: Chris Blanchette
+Funnel: DE ACADEMY Direct VSL[10:11 AM]New CRM Lead
+Name: Robin Hendrix
+Lead ID: lead_Po5MK5W8cdTnS5Vqyxetub8m5takrBV0OoDMnsgdyuj
+Created: 2026-08-12T09:51:27.906000+00:00
+Status: Potential
+Email: rhendrix3340@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:11 AM]New CRM Lead
+Name: Kumar Pragada
+Lead ID: lead_nXNZWQ9QUZkZ6m8UHFAm1Eug9KXRezppPFfofv3PNsK
+Created: 2026-08-12T11:10:32.455000+00:00
+Status: Potential
+Email: kumar2chanti@gmail.com
+Owner: Ninad Magdum
+Funnel: None[10:11 AM]New CRM Lead
+Name: Yasir Pira
+Lead ID: lead_4yd6oxpambVkKEfnf8YfCq2dSV77gY9akTf1ee8p3hz
+Created: 2026-08-12T04:31:21.083000+00:00
+Status: Potential
+Email: yasirpira12@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:12 AM]New CRM Lead
+Name: Brendan Settles
+Lead ID: lead_66W1QivS0OI5lArwOoxZ1TCLh8zhMEgWCFKE2vu4JkC
+Created: 2026-08-11T19:10:56.077000+00:00
+Status: Potential
+Email: brendan25000@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:12 AM]New CRM Lead
+Name: Alvin stewart
+Lead ID: lead_vjC03MWSC9ZWrBw6FTZoBDEWq3j1EDFvFzS69d68uoW
+Created: 2026-08-11T22:31:18.467000+00:00
+Status: Potential
+Email: akstewartiii@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:12 AM]New CRM Lead
+Name: Travis Friese
+Lead ID: lead_iBacO95trWIJ4TzyAOKV7mjAwtdBBN6uLIzQxT5rK4p
+Created: 2026-08-12T05:31:42.985000+00:00
+Status: Potential
+Email: tfriese758@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:12 AM]New CRM Lead
+Name: Jay Kim
+Lead ID: lead_GUkdPvQ2AIQ1mZubPXCovQjr0NyqqxssHxTTTmAvmcL
+Created: 2026-08-12T13:07:20.698000+00:00
+Status: Potential
+Email: jaydreamone@gmail.com
+Owner: Miguel Romero
+Funnel: DE ACADEMY Direct VSL[10:12 AM]New CRM Lead
+Name: Merv Manangan
+Lead ID: lead_w8TP08YqMXJIGA5OMAqmmM8Gk6I9cnBaSedo8bCG7AD
+Created: 2026-08-12T14:02:34.101000+00:00
+Status: Potential
+Email: pending
+Owner: pending (not yet assigned)
+Funnel: unknown[10:12 AM]New CRM Lead
+Name: Andri
+Lead ID: lead_XgTHi8SNwEgO6MUcZ0Ft5UJHPse4YDK25l1np9AtiwI
+Created: 2026-08-11T23:51:39.193000+00:00
+Status: Potential
+Email: larhonda.thomas85@gmail.com
+Owner: Ninad Magdum
+Funnel: New Data Career Accelerator - v1 - Paid Traffic Only[10:12 AM]New CRM Lead
+Name: Barry Langer
+Lead ID: lead_ujrwKkhpyXsJlY3JEZA09uODwBG0YmedSgTkkWA1EN0
+Created: 2026-08-12T12:02:29.378000+00:00
+Status: Potential
+Email: domes13bread@icloud.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:12 AM]New CRM Lead
+Name: Sravan Revanth
+Lead ID: lead_sBNhq1Li1dCtE3FN8A3Eeneo4HCV73s5ulzFnD02mfc
+Created: 2026-08-12T07:32:14.774000+00:00
+Status: Potential
+Email: sravangaraga1379@gmail.com
+Owner: Ninad Magdum
+Funnel: None[10:13 AM]New CRM Lead
+Name: Melissa Mallett
+Lead ID: lead_HCTeb4H32uLMIZqurZYNnpODC0PVCnNITreckSbnyAc
+Created: 2026-08-12T05:52:42.037000+00:00
+Status: Potential
+Email: melissamallett626@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:13 AM]New CRM Lead
+Name: DaJe Lake
+Lead ID: lead_Xg0MVYiIOqI8a1OeXcjo8YyYTetSKj5m20beJKpsb9p
+Created: 2026-08-11T22:32:19.188000+00:00
+Status: Potential
+Email: dajellake@gmail.com
+Owner: Ninad Magdum
+Funnel: New Data Career Accelerator - v1 - Paid Traffic Only[10:13 AM]New CRM Lead
+Name: preeshea50@yahoo.com
+Lead ID: lead_jiUYXYBrWBghxZSbnKe2QI2dgG2Oh27lZbobM4ypQv1
+Created: 2026-08-12T00:52:35.085000+00:00
+Status: Potential
+Email: preeshea50@yahoo.com
+Owner: Ninad Magdum
+Funnel: None[10:13 AM]New CRM Lead
+Name: Shauna Davis
+Lead ID: lead_GoLORUonQuvpAxJeLrP4MbVkoLgJzv6OxWtZixszwbO
+Created: 2026-08-12T09:13:04.154000+00:00
+Status: Potential
+Email: ladystorm1974@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:13 AM]New CRM Lead
+Name: M. Lombano DrUTM
+Lead ID: lead_Y88LHe60745W0wOo5n71cXPIMFnMsfhzsSJZNjLgsY7
+Created: 2026-08-11T18:52:33.338000+00:00
+Status: Potential
+Email: mauricio.lombano+aug11aa1@drutm.com
+Owner: Ninad Magdum
+Funnel: Salary Predictor[10:13 AM]New CRM Lead
+Name: Isaac Blakely
+Lead ID: lead_bRgSucgWXoJ6Cy9EMHGpqsU3ZLly185eF5sLe1MmHHD
+Created: 2026-08-12T12:03:33.232000+00:00
+Status: Potential
+Email: ib4us2@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:14 AM]New CRM Lead
+Name: Jason Earnest Coker
+Lead ID: lead_APcSeNdZ1NGIOHG3GMH5ot4pEDCBrFd2jGzaZod0jiM
+Created: 2026-08-12T00:53:16.425000+00:00
+Status: Interested
+Email: jecexperice925@mail.com
+Owner: Chris Blanchette
+Funnel: None[10:14 AM]New CRM Lead
+Name: Andrew Metzger
+Lead ID: lead_dguzVgod3CaPHYaI2IIjpJvlTlcIgrhlT6RnIVct1WQ
+Created: 2026-08-11T23:13:14.010000+00:00
+Status: Potential
+Email: themet612@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:14 AM]New CRM Lead
+Name: ghfd@hfgd.com
+Lead ID: lead_wPtc7OMeaWbc4lt3eGmeVrOvXm9baSJEMvUJpm4CxJZ
+Created: 2026-08-12T04:33:25.491000+00:00
+Status: Potential
+Email: ghfd@hfgd.com
+Owner: Ninad Magdum
+Funnel: None[10:14 AM]New CRM Lead
+Name: Benjamin Sablah
+Lead ID: lead_wdpbUTNe8DAt8DESz9RW2iDtcIF60QuKhMZ3QuXJv59
+Created: 2026-08-12T03:13:49.803000+00:00
+Status: Potential
+Email: benjamin.sablah17@gmail.com
+Owner: Zan Strmec
+Funnel: YT DE ACADEMY Direct VSL[10:14 AM]New CRM Lead
+Name: Philip Garcia
+Lead ID: lead_niFeu9UJ2P5wSmpJkdBixK5hhp1OEj0IzYRazmXMmLF
+Created: 2026-08-11T19:13:32.365000+00:00
+Status: Potential
+Email: recon_2d@yahoo.com
+Owner: Michael Mkrtichyan
+Funnel: DE ACADEMY Direct VSL Multi Page Optin[10:14 AM]New CRM Lead
+Name: Julio Medeiros
+Lead ID: lead_TVBTi1OYtZkQuOp952EYtUOeSDiRecakaUpmJ4Cj6Lj
+Created: 2026-08-12T12:58:34.076000+00:00
+Status: Potential
+Email: j.medeiros369@outlook.com
+Owner: Chris Blanchette
+Funnel: DE ACADEMY Direct VSL[10:14 AM]New CRM Lead
+Name: K Buckner
+Lead ID: lead_2a9uUSg1jE0V8R843pTDDqGOrDLHR0GFrcJx7QfmG9l
+Created: 2026-08-12T04:14:13.286000+00:00
+Status: Potential
+Email: sirjaggy29@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:15 AM]New CRM Lead
+Name: Trishelle Williams
+Lead ID: lead_cCA0R48rpsM5fTPBktko6Imn3pFKBwGK7cuAUfo3gBQ
+Created: 2026-08-12T07:14:27.814000+00:00
+Status: Potential
+Email: trishelle94@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:15 AM]New CRM Lead
+Name: Ashwin
+Lead ID: lead_TPtXGzp4kG5NCFNsvzJa8FgW4fec5YS3nh15rLV7476
+Created: 2026-08-12T03:14:33.265000+00:00
+Status: Potential
+Email: ashwinreddy.b@gmail.com
+Owner: Chris Blanchette
+Funnel: DE ACADEMY Direct VSL[10:15 AM]New CRM Lead
+Name: Sylvia Francis
+Lead ID: lead_jfZlLGr27v95AWujkxqVG5b71USZh4xIZiSWnFwajgs
+Created: 2026-08-11T23:54:21.863000+00:00
+Status: Potential
+Email: sylviafrancis2003@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL Multi Page Optin[10:15 AM]New CRM Lead
+Name: Ryan Tidwell
+Lead ID: lead_94kxJ5mRQuGjJ3Lln5VMniRTw77Mm6TuvOfky74ugyy
+Created: 2026-08-12T10:55:17.358000+00:00
+Status: Potential
+Email: formori@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:15 AM]New CRM Lead
+Name: manjindersinghaj@gmail.com
+Lead ID: lead_aoKDfoXo3FPY7ROVNSpUZFLkLQbKAqB930hqWxgBKkg
+Created: 2026-08-12T03:15:04.134000+00:00
+Status: Potential
+Email: manjindersinghaj@gmail.com
+Owner: Ninad Magdum
+Funnel: None[10:15 AM]New CRM Lead
+Name: David Saavedra
+Lead ID: lead_U9yZJNTVJVuIyxbDJA81MBAclQvF9DX4fsebSpJmbg2
+Created: 2026-08-11T23:35:04.299000+00:00
+Status: Potential
+Email: dmarcossaavedra@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:16 AM]New CRM Lead
+Name: Frankie Graham
+Lead ID: lead_Ac51Czqm8Ni3m660jfu5W0Z5VRTOGEkF7lb0AUPrQPq
+Created: 2026-08-11T23:15:12.289000+00:00
+Status: Potential
+Email: frankiegraham175@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:16 AM]New CRM Lead
+Name: Enrique
+Lead ID: lead_aAYUY7jNZxw62uDiOj76YwSjPKDxfNYXhL3mQxSaKF9
+Created: 2026-08-11T20:55:06.599000+00:00
+Status: Potential
+Email: ehcantu@yahoo.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:16 AM]New CRM Lead
+Name: shk678@gmail.com
+Lead ID: lead_78ym108oX769iCfMsyumbR22DX4gEoT5fnNZNJsAzwu
+Created: 2026-08-11T23:35:26.147000+00:00
+Status: Potential
+Email: shk678@gmail.com
+Owner: Chris Blanchette
+Funnel: None[10:16 AM]New CRM Lead
+Name: lukwago patrick.
+Lead ID: lead_kJSR1qMIVw94cdx4uJS0mUglcr5pE1K4BB8WkfPxk2g
+Created: 2026-08-11T21:35:31.092000+00:00
+Status: Potential
+Email: lukepat335@gmail.com
+Owner: Miguel Romero
+Funnel: YT DE ACADEMY Direct VSL[10:16 AM]New CRM Lead
+Name: Donald Schmollinger
+Lead ID: lead_3CTqXXDKfk7LhkAIrW7pdGaAx2WGXTVQusieNML59Rb
+Created: 2026-08-11T23:36:04.347000+00:00
+Status: Potential
+Email: dschmolli8@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:17 AM]New CRM Lead
+Name: Rashi
+Lead ID: lead_Dlhn5lrRSDSBerilQ19jAyyUvBDlT4XAsl5EHU2EDME
+Created: 2026-08-11T20:35:52.481000+00:00
+Status: Potential
+Email: ralshams31@gmail.com
+Owner: Miguel Romero
+Funnel: DE ACADEMY Direct VSL[10:17 AM]New CRM Lead
+Name: Stephen
+Lead ID: lead_ZBZpoIwSCDjJlvczSJAj0eOUGgYtMkS5jCzJxSKYKlR
+Created: 2026-08-11T17:55:57.598000+00:00
+Status: Potential
+Email: stephentxusa@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:17 AM]New CRM Lead
+Name: Gayathri Addagada
+Lead ID: lead_9IkPwx0v2kIPkjKntUoGuZcZEAt6nhZsKKNGZzrBPqF
+Created: 2026-08-11T18:16:07.084000+00:00
+Status: Potential
+Email: gayathri.addagada@gmail.con
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:17 AM]New CRM Lead
+Name: Steve abrams
+Lead ID: lead_wm11TIEIvJY2ziG5rwBvW6OdoaUlAw27jdPwrhKpchA
+Created: 2026-08-11T17:36:04.589000+00:00
+Status: Potential
+Email: orlando44@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:17 AM]New CRM Lead
+Name: Montray Mcgee
+Lead ID: lead_HY4nixk1167ShvObU3wXl3j1R6pNtA75XB3R20UZBu9
+Created: 2026-08-12T00:37:03.927000+00:00
+Status: Potential
+Email: montraymcgee678@gmail.com
+Owner: Joaquin Jaimes
+Funnel: YT DE ACADEMY Direct VSL[10:17 AM]New CRM Lead
+Name: Christian Peralta
+Lead ID: lead_Xb9Lh9wRO90jAEBO3aFhV2F732mfmIRMTQWLTSKfjk8
+Created: 2026-08-12T07:37:26.720000+00:00
+Status: Potential
+Email: chrisperalta345@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:18 AM]New CRM Lead
+Name: KC Chowdhury
+Lead ID: lead_7zKdRPbFAGWBbURxN25cnpwnlxligJDk01OqY6jbNNM
+Created: 2026-08-12T04:37:25.727000+00:00
+Status: Potential
+Email: bizcut@gmail.com
+Owner: Miguel Romero
+Funnel: DE ACADEMY Direct VSL[10:18 AM]New CRM Lead
+Name: Siddarth
+Lead ID: lead_rkgy615LUjtZOTwFJ5MjkOaElrQ5Je0g0xQQwCMXQZz
+Created: 2026-08-11T17:36:50.317000+00:00
+Status: Potential
+Email: siddarth.bantula63@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:18 AM]New CRM Lead
+Name: Kar
+Lead ID: lead_iYTh9R0uQJfRH8F1zZpEaVm3RWKe06HgiciVbpxNRJg
+Created: 2026-08-11T17:56:59.077000+00:00
+Status: Potential
+Email: karthiktann@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:18 AM]New CRM Lead
+Name: David Pittman
+Lead ID: lead_UmdOlgIlxfLo2PUWZhD7TjmuJZOydcYLdCCMGl2YaeN
+Created: 2026-08-12T04:58:12.148000+00:00
+Status: Potential
+Email: davdpittman1984@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:18 AM]New CRM Lead
+Name: Roderick
+Lead ID: lead_Vsnp9CyPTlHLA7ZtqB2GYp7jnBN7UI0GfvwOba5Oyqw
+Created: 2026-08-12T12:08:35.156000+00:00
+Status: Potential
+Email: fogfish@duck.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:19 AM]New CRM Lead
+Name: Gayathri Mahendran
+Lead ID: lead_o29PQY6S5zQ7y2hZo38uNl4GmFFGmc4J7VzfOuamUwA
+Created: 2026-08-12T00:58:12.359000+00:00
+Status: Potential
+Email: c.gayathris89@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:19 AM]New CRM Lead
+Name: Sajjad R
+Lead ID: lead_xTU48REg5AlX3KpUxBpdT0C6EDFa4VHFRsOvANdAD86
+Created: 2026-08-11T23:38:41.205000+00:00
+Status: Potential
+Email: tito765@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:19 AM]New CRM Lead
+Name: Onyinyechukwu Nebe
+Lead ID: lead_EQOMvy0QPjfcV23D4vT109ukLvhlUC1vJOXtlBc5LZZ
+Created: 2026-08-11T20:58:37.383000+00:00
+Status: Potential
+Email: kennethnebe@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL (Organic)[10:19 AM]New CRM Lead
+Name: Larry Hutcherson
+Lead ID: lead_FtcDgiApztkqW0w7aY4dylZrwHNnITkboceeKsauQi2
+Created: 2026-08-11T21:58:46.454000+00:00
+Status: Potential
+Email: larryhutcherson91@gmail.com
+Owner: Ninad Magdum
+Funnel: New Data Career Accelerator - v1 - Paid Traffic Only[10:19 AM]New CRM Lead
+Name: Chris II
+Lead ID: lead_SyQCDMCNSUmoyDqNilBN0zqoJ1wyYWx6ZveNBfZfRg5
+Created: 2026-08-11T23:18:55.384000+00:00
+Status: Potential
+Email: chris@chd2.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:19 AM]New CRM Lead
+Name: Jason Martinelli
+Lead ID: lead_eMIIC3i8VIemL3G7C2paug2XE9IfyJGhAEEAC6Y4wHy
+Created: 2026-08-11T20:58:53.252000+00:00
+Status: Potential
+Email: jaymart0927@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:20 AM]New CRM Lead
+Name: Temitope suleiman
+Lead ID: lead_pZg28rucP4imQW7d5PxNuPuEHxSOWPcBm6E0qXRw6cE
+Created: 2026-08-11T18:58:48.333000+00:00
+Status: Potential
+Email: tope_semiu@yaboo.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:20 AM]New CRM Lead
+Name: Nic
+Lead ID: lead_PlFraCcCgoQcYxgwjJ5gqVEOSqg9A1WfxYnSBWqm3Mh
+Created: 2026-08-11T23:19:11.602000+00:00
+Status: Potential
+Email: ndonini@yahoo.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:20 AM]New CRM Lead
+Name: Jeffrey
+Lead ID: lead_srkT0lcOOncCzQkfusqlsM5wE9vCKLDdB8RqbbiDSAf
+Created: 2026-08-11T21:39:42.799000+00:00
+Status: Potential
+Email: pfateambeyondjeff@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:20 AM]New CRM Lead
+Name: devendra kumar
+Lead ID: lead_8F3BzhWlaIUmsEo7BfIWMoYyrdFrcKklfPhi0xz7bGM
+Created: 2026-08-12T08:00:21.684000+00:00
+Status: Potential
+Email: kumardevendrab987@gmail.com
+Owner: Ninad Magdum
+Funnel: None[10:21 AM]New CRM Lead
+Name: Steven Storm
+Lead ID: lead_cMj8n3ibBxjiKq9Jvzxg26wTBRCrwbay8aFwkCiIr9r
+Created: 2026-08-12T01:41:07.143000+00:00
+Status: Potential
+Email: trexmedic@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:22 AM]New CRM Lead
+Name: Steven jones
+Lead ID: lead_7tOkDnyAbAEig1rE47nPScAO9P0FGFsLn52cSkCcj4R
+Created: 2026-08-11T21:41:06.540000+00:00
+Status: Potential
+Email: saj111222@gmail.com
+Owner: Miguel Romero
+Funnel: YT DE ACADEMY Direct VSL[10:22 AM]New CRM Lead
+Name: rondawilco@gmail.com
+Lead ID: lead_xBoFPVJWmyE2sjakItj3oUn0cKvqXLGOGUBB4wSWAI5
+Created: 2026-08-11T23:01:23.631000+00:00
+Status: Potential
+Email: rondawilcox31@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:22 AM]New CRM Lead
+Name: Austin graybeal
+Lead ID: lead_gcFuBzCvbGHSjNKMV2UHPl1OkzPRzNyk1lKJBzcCzgv
+Created: 2026-08-11T20:41:39.266000+00:00
+Status: Potential
+Email: agraybeal137@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:22 AM]New CRM Lead
+Name: Awais
+Lead ID: lead_PZGrKnn5kmHQNToYvOz974DvWivfoenqk8mT0AbRBfO
+Created: 2026-08-11T18:21:34.136000+00:00
+Status: Potential
+Email: shaikawaise15@gmail.com
+Owner: Ninad Magdum
+Funnel: New Data Career Accelerator - v1 - Paid Traffic Only[10:22 AM]New CRM Lead
+Name: Rolando Diaz
+Lead ID: lead_jeImA5sS5AWAaBBB5ZlwZjOXZWIneit4zPw8qwAvCWB
+Created: 2026-08-12T10:02:30.457000+00:00
+Status: Potential
+Email: rcotilla86@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:22 AM]New CRM Lead
+Name: VASANTH KALALE
+Lead ID: lead_GhH1BLQEkNvIfDjTKwE35EKs9qbIox67mgYYNJJPrZf
+Created: 2026-08-11T20:41:52.878000+00:00
+Status: Potential
+Email: vkalale@gmaul.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:22 AM]New CRM Lead
+Name: Ben
+Lead ID: lead_qzbQSNPvRw5ag3dU3NscKMm7nZGOVIeEP16tuWOlkKy
+Created: 2026-08-11T20:21:50.885000+00:00
+Status: Potential
+Email: bpm121@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:23 AM]New CRM Lead
+Name: Tyran wilson
+Lead ID: lead_ZJ2nIyu0edOce1ZafdjoWZ61tqypjKooXZB3gzSYWtN
+Created: 2026-08-12T11:02:43.471000+00:00
+Status: Potential
+Email: tyranzw@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:23 AM]New CRM Lead
+Name: Ruberli Castro
+Lead ID: lead_HesO4Xz6SPRMutkvumoyGjuOvqGZj7RKjdcXWeOaFUu
+Created: 2026-08-12T03:22:21.772000+00:00
+Status: Potential
+Email: ruberlic@hotmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:23 AM]New CRM Lead
+Name: Parthav
+Lead ID: lead_CiLl15p49DYMpHx2BTSKORQDFJYDIWFBUNpikXdsRTH
+Created: 2026-08-12T06:22:43.904000+00:00
+Status: Potential
+Email: parthbhatt373@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:23 AM]New CRM Lead
+Name: Dakota Kerekffy
+Lead ID: lead_kyclETUdINd67MBNac7DCx1EjojHDUBRhF0lvGfZUGO
+Created: 2026-08-12T03:02:46.771000+00:00
+Status: Potential
+Email: dakotakerekffy@outlook.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:24 AM]New CRM Lead
+Name: James Kotch
+Lead ID: lead_e0MLQsK5u9ePLNv9NLY3aL8u2yjBeMYyLOFruVmumth
+Created: 2026-08-12T04:23:16.873000+00:00
+Status: Potential
+Email: jgkhunt1@yahoo.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:24 AM]New CRM Lead
+Name: Mike Snyder
+Lead ID: lead_bZG1Xq2wYe79ba4sJEuVsqDVjteLh5Y9PujwoDX8tUm
+Created: 2026-08-11T20:42:55.821000+00:00
+Status: Potential
+Email: vegascoug@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:24 AM]New CRM Lead
+Name: Dylan Simonton
+Lead ID: lead_gh57BNcmF96CYpcFRJoZNJ6M0MA0qwuG9P6E1wreUCV
+Created: 2026-08-11T22:03:03.776000+00:00
+Status: Potential
+Email: colesimmarketing@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:24 AM]New CRM Lead
+Name: Alex Lindelbert
+Lead ID: lead_bd72q8WtVr8lIS1BpSL1Wqhnopy5eE1lLBRT0U1FqhD
+Created: 2026-08-12T04:03:31.752000+00:00
+Status: Potential
+Email: flyingwarpig@gmail.com
+Owner: Miguel Romero
+Funnel: DE ACADEMY Direct VSL[10:24 AM]New CRM Lead
+Name: Maaz Vohra
+Lead ID: lead_6tKjsBMRpe2Lm02mztWmMxJsIOsFLxEWP3Os2hqaTno
+Created: 2026-08-12T02:03:23.974000+00:00
+Status: Potential
+Email: maaz1017v@gmail.com
+Owner: Chris Blanchette
+Funnel: DE ACADEMY Direct VSL[10:24 AM]New CRM Lead
+Name: Michelle McLean
+Lead ID: lead_gCECyzNbuZ8zw6xGfKKT2LUh0mnLudntyWRuX6BBahp
+Created: 2026-08-12T03:43:42.883000+00:00
+Status: Potential
+Email: m.mclean6513@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:24 AM]New CRM Lead
+Name: Yehor
+Lead ID: lead_AB08K1YDAAhzRR3sGseG4EGGnEEUX2vmWni7YOKxdFH
+Created: 2026-08-11T23:23:30.170000+00:00
+Status: Potential
+Email: egorshitikov@gmail.com
+Owner: Peter Kovac
+Funnel: DE ACADEMY Direct VSL[10:24 AM]New CRM Lead
+Name: Faye Nolen
+Lead ID: lead_7IWWW9yH8oDkR1CESAyuyfFhgiuIBJsQ1YDoUouMovi
+Created: 2026-08-12T08:24:01.463000+00:00
+Status: Potential
+Email: fayenolen@yahoo.com
+Owner: Nikoloz Tkhilishvili
+Funnel: DE ACADEMY Direct VSL[10:24 AM]New CRM Lead
+Name: Eva Neal
+Lead ID: lead_K0l16ttBdHlzBFGMKGVYu8J9jB4Qrhu5hy7fyzcsTWn
+Created: 2026-08-12T00:43:48.721000+00:00
+Status: Potential
+Email: eva.d.neal@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:24 AM]New CRM Lead
+Name: Beau Garbutt
+Lead ID: lead_6WklCgr947H0R42sapxpzr3tBAClRsXFfiey4mbtktG
+Created: 2026-08-11T20:43:45.399000+00:00
+Status: Potential
+Email: beaugarbutt@yahoo.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:24 AM]New CRM Lead
+Name: Snehi Yavanam
+Lead ID: lead_OxL6m83mDgpwPJFsAtH2jjYpVoNl7SnX18xASTtbXZV
+Created: 2026-08-12T03:24:09.109000+00:00
+Status: Potential
+Email: snehikumar@gmail.com
+Owner: Ninad Magdum
+Funnel: YT DE ACADEMY Direct VSL[10:25 AM]New CRM Lead
+Name: Mark Holm
+Lead ID: lead_eNuAHy7v0TJohqEjIglqRU76zOs0SlZhPiOKJ2VPRD2
+Created: 2026-08-11T21:44:13.010000+00:00
+Status: Potential
+Email: holmmark6@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:25 AM]New CRM Lead
+Name: Tyler Curtin
+Lead ID: lead_ENfa67fCkGPFPlGAkaL4A7xMBtbBu3F0uXvNGpHRG4c
+Created: 2026-08-12T01:04:30.778000+00:00
+Status: Potential
+Email: tyler_curtin@yahoo.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:25 AM]New CRM Lead
+Name: Jennifer Schroer
+Lead ID: lead_1fmrrqblGO3xzX6gVzo2TOuMVtaVarhHYbkdfYkdbuo
+Created: 2026-08-11T19:24:20.843000+00:00
+Status: Potential
+Email: schroer91011@gmail.com
+Owner: Peter Kovac
+Funnel: DE ACADEMY Direct VSL[10:25 AM]New CRM Lead
+Name: Nicholas
+Lead ID: lead_s20OBBz1l5lU13LOkFrxL5kaHTLCB1D3Z9Al63esknQ
+Created: 2026-08-11T21:44:37.718000+00:00
+Status: Potential
+Email: nawill@mac.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:25 AM]New CRM Lead
+Name: Patrick Lausier
+Lead ID: lead_LaFQ6A3iLRDfO1xHNiTXfd3CE2JSe5iX4ec9H1HFJtx
+Created: 2026-08-11T23:44:42.642000+00:00
+Status: Potential
+Email: patrick.lausier@yahoo.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:25 AM]New CRM Lead
+Name: Ryan Vizcarra
+Lead ID: lead_vh7nAVLiAl5DxxcUv3W90dfQxL3ugX1lNTrWThmrfpG
+Created: 2026-08-11T18:04:31.353000+00:00
+Status: Potential
+Email: reyryanvizcarra@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:25 AM]New CRM Lead
+Name: Elizabeth Carr
+Lead ID: lead_SD9ObK2V1yMW22BQp6DbfUfja413iYXmxzgLFrA2usu
+Created: 2026-08-12T10:25:21.997000+00:00
+Status: Potential
+Email: simply.elizabethcarr@gmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:25 AM]New CRM Lead
+Name: Mohammad Ibrahim
+Lead ID: lead_ITrXHsGNqX8UhsCs90ikXnLHubKBaBCN3aqO0HZNFnR
+Created: 2026-08-12T04:25:12.699000+00:00
+Status: Potential
+Email: mohammad_fahim@hotmail.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSL[10:26 AM]New CRM Lead
+Name: Dennis Depew
+Lead ID: lead_EqFY05UkVOzVBoi6lHD5eRwBoAmafF3exPf7yb7dYNl
+Created: 2026-08-12T08:05:35.336000+00:00
+Status: Potential
+Email: dennis_depew@yahoo.com
+Owner: Ninad Magdum
+Funnel: DE ACADEMY Direct VSLInsightFlow Alerts  [10:32 AM]
+New CRM Lead
+Name: Raela Tosh
+Lead ID: lead_iLB83dWF8DoGqr8ry3T8AQ3rfQcB1brFFP8gC7QghdX
+Created: 2026-08-12T14:22:05.884000+00:00
+Status: Potential
+Email: pending
+Owner: pending (not yet assigned)
+Funnel: unknown[10:35 AM]New CRM Lead
+Name: Jesse Goble
+Lead ID: lead_37M0llAZmxCFCDkSJWFFub1Jny9b0BoconALlicrlmE
+Created: 2026-08-12T14:25:15.313000+00:00
+Status: Potential
+Email: pending
+Owner: pending (not yet assigned)
+Funnel: unknown[10:40 AM]New CRM Lead
+Name: Jorge Brock Júnior
+Lead ID: lead_QPYmFsQe9Do0uHOz6E1aAs6MQTf4tFzpBX4krbprIPY
+Created: 2026-08-12T14:30:09.088000+00:00
+Status: Potential
+Email: pending
+Owner: pending (not yet assigned)
+Funnel: unknown[10:44 AM]New CRM Lead
+Name: jorgebrockjunior@gmail.com
+Lead ID: lead_lb85VNFXYu2uEQZnEVTH5IWPNLrFlCO3JwCyBGY7Zd2
+Created: 2026-08-12T14:34:15.247000+00:00
+Status: Potential
+Email: pending
+Owner: pending (not yet assigned)
+Funnel: unknownInsightFlow Alerts  [11:26 AM]
+New CRM Lead
+Name: Andre Johnson
+Lead ID: lead_wYs85hKtmr2Oih3utXfpANIct6fq5kmYZqTfXNPcyjg
+Created: 2026-08-12T15:16:33.763000+00:00
+Status: Potential
+Email: pending
+Owner: pending (not yet assigned)
+Funnel: unknown[11:29 AM]New CRM Lead
+Name: Miguel
+Lead ID: lead_FU0jpUO11QVLhCBZqDwANIC739HUf61950SV2zc1xcZ
+Created: 2026-08-12T15:19:43.404000+00:00
+Status: Potential
+Email: pending
+Owner: pending (not yet assigned)
+Funnel: unknown
