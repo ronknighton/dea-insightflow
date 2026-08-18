@@ -106,11 +106,24 @@ def _booking_id_from_uri(uri: str) -> str:
     return urlparse(uri).path.rstrip("/").split("/")[-1]
 
 
+def _event_type_id_from_url(url: str) -> str:
+    """event_type is Calendly's real, deterministic identifier for which
+    booking page/campaign this event belongs to - per the requirements
+    doc, this is the intended channel-matching mechanism, NOT
+    tracking.utm_campaign (which this project spent a long time chasing
+    before finding this). Same trailing-path-segment extraction as
+    _booking_id_from_uri."""
+    if not url:
+        return None
+    return urlparse(url).path.rstrip("/").split("/")[-1]
+
+
 def _flatten_booking_event(event_body: dict, source_key: str) -> dict:
     payload = event_body.get("payload", {}) or {}
     scheduled_event = payload.get("scheduled_event", {}) or {}
     memberships = scheduled_event.get("event_memberships", []) or []
     first_host = memberships[0] if memberships else {}
+    event_type_url = scheduled_event.get("event_type")
 
     return {
         "booking_id": _booking_id_from_uri(payload.get("uri")),
@@ -118,6 +131,8 @@ def _flatten_booking_event(event_body: dict, source_key: str) -> dict:
         "invitee_email": payload.get("email"),
         "channel": _extract_channel(payload),
         "campaign_raw": (payload.get("tracking", {}) or {}).get("utm_campaign"),
+        "event_type_url": event_type_url,
+        "event_type_id": _event_type_id_from_url(event_type_url),
         "booked_at": payload.get("created_at"),
         "meeting_name": scheduled_event.get("name"),
         "meeting_start_time": scheduled_event.get("start_time"),
@@ -161,6 +176,12 @@ def transform_bookings(bucket: str) -> pd.DataFrame:
         # now, so it gets the same treatment defensively.
         df["channel"] = df["channel"].astype("string")
         df["campaign_raw"] = df["campaign_raw"].astype("string")
+        # event_type_url/id are populated on nearly every real booking (not
+        # a rare, mostly-null field like channel/campaign_raw), so the
+        # empty-column type-inference bug is less likely here - but the
+        # fix costs nothing to apply defensively regardless.
+        df["event_type_url"] = df["event_type_url"].astype("string")
+        df["event_type_id"] = df["event_type_id"].astype("string")
     return df
 
 
