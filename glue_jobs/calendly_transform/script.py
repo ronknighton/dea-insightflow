@@ -263,6 +263,39 @@ def transform_spend(bucket: str) -> pd.DataFrame:
     if not df.empty:
         df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
         df["spend"] = pd.to_numeric(df["spend"], errors="coerce")
+
+        # CONFIRMED PRODUCTION BUG (Aug 18, 2026): each daily spend file
+        # covers a rolling ~30-day window (per the requirements doc:
+        # "Data in the file ranges for a time period of 30 days at
+        # maximum"), and this job reads every raw file on every
+        # full-rebuild run. A single (channel, date) fact therefore
+        # appears in every overlapping file that ever included it -
+        # confirmed directly against real data: up to 8 duplicate rows
+        # for the same channel+date, inflating every marts-layer join
+        # against calendly_bookings by the same multiplier (bookings and
+        # spend both fan out once per duplicate spend row).
+        before = len(df)
+        # Sanity check BEFORE dropping: if the "duplicate" rows actually
+        # disagree on spend for the same (channel, date), that's a
+        # different, more concerning problem (a real revision to
+        # historical spend) that silently keeping "first" would hide.
+        conflicting = df.groupby(["channel", "date"])["spend"].nunique()
+        conflicting_keys = conflicting[conflicting > 1]
+        if not conflicting_keys.empty:
+            logger.warning(
+                "%d (channel, date) pairs have DIFFERING spend values across duplicate "
+                "files, not just repeated identical ones - dropping to 'first' may be "
+                "hiding a real data revision, not just redundant overlap: %s",
+                len(conflicting_keys), conflicting_keys.index.tolist()[:10],
+            )
+
+        df = df.drop_duplicates(subset=["channel", "date"], keep="first")
+        removed = before - len(df)
+        if removed:
+            logger.info(
+                "Removed %d duplicate (channel, date) rows from overlapping spend "
+                "files (%d -> %d rows)", removed, before, len(df),
+            )
     return df
 
 
