@@ -122,11 +122,50 @@ def test_event_type_extracted_from_real_fb_named_booking():
 
     assert row["event_type_url"] == "https://api.calendly.com/event_types/91e2e844-449d-41a5-b54a-1446d91abdcc"
     assert row["event_type_id"] == "91e2e844-449d-41a5-b54a-1446d91abdcc"
-    # channel comes back None here - tracking.utm_campaign is null on this
-    # real booking, same as the vast majority of real traffic. event_type
-    # is captured regardless, independent of the broken utm_campaign path.
-    assert row["channel"] is None
-    print("PASS: event_type correctly extracted from a real booking, independent of the broken utm_campaign field")
+    # Post-Aug-18-2026 rebuild: channel now correctly resolves to
+    # "facebook_paid_ads" via EVENT_TYPE_CHANNEL_MAP, even though
+    # tracking.utm_campaign is null on this real booking (same as the
+    # vast majority of real traffic) - this is the actual fix. Before
+    # this rebuild, this same booking would have incorrectly come back
+    # as channel=None despite being unambiguously Facebook-sourced.
+    assert row["channel"] == "facebook_paid_ads"
+    print("PASS: event_type correctly extracted AND correctly mapped to facebook_paid_ads, independent of the broken utm_campaign field")
+
+
+def test_event_type_channel_map_covers_all_real_confirmed_ids():
+    """Locks in every event_type_id verified against real data (Aug 18,
+    2026) - if any of these ever gets accidentally removed from the map,
+    this fails loudly rather than silently reverting to organic_unknown."""
+    real_confirmed = {
+        "13b9e08f-19d6-4632-99c5-4b213dbc335f": "facebook_paid_ads",
+        "91e2e844-449d-41a5-b54a-1446d91abdcc": "facebook_paid_ads",
+        "cbb0d033-c0e9-4cc1-998c-87b224561a33": "facebook_paid_ads",
+        "dbb4ec50-38cd-4bcd-bbff-efb7b5a6f098": "youtube_paid_ads",
+        "789dcd61-4362-4ecf-a99a-553853075620": "tiktok_paid_ads",
+        "79a72e89-978b-493c-84ba-9c0db9fd8435": "tiktok_paid_ads",
+    }
+    for event_type_id, expected_channel in real_confirmed.items():
+        assert sc.EVENT_TYPE_CHANNEL_MAP[event_type_id] == expected_channel
+    print("PASS: all real, confirmed event_type_id -> channel mappings present and correct")
+
+
+def test_unmapped_event_type_falls_through_to_none():
+    """An event_type_id with no known channel association (e.g. any of
+    the many operational/coaching meeting types) must resolve to None,
+    not raise or default incorrectly - downstream COALESCE(channel,
+    'organic_unknown') handles the rest."""
+    unknown_booking = {
+        "payload": {
+            "scheduled_event": {
+                "event_type": "https://api.calendly.com/event_types/00000000-0000-0000-0000-000000000000",
+            },
+            "tracking": {"utm_campaign": None, "utm_source": None},
+            "questions_and_answers": [],
+        }
+    }
+    channel = sc._extract_channel(unknown_booking["payload"], "00000000-0000-0000-0000-000000000000")
+    assert channel is None
+    print("PASS: unmapped event_type_id correctly resolves to None, not an error or false positive")
 
 
 def test_flatten_spend_records():
@@ -253,6 +292,8 @@ def test_all_null_channel_column_still_typed_as_string(mock_s3):
 if __name__ == "__main__":
     test_flatten_real_sample_booking_event()
     test_event_type_extracted_from_real_fb_named_booking()
+    test_event_type_channel_map_covers_all_real_confirmed_ids()
+    test_unmapped_event_type_falls_through_to_none()
     test_flatten_spend_records()
     test_booking_id_from_uri()
     test_transform_bookings_reads_all_pages_and_types_dates()
