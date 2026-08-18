@@ -49,6 +49,49 @@ s3_client = boto3.client("s3")
 
 TRACKED_EVENT_TYPES = {"facebook_paid_ads", "youtube_paid_ads", "tiktok_paid_ads"}
 
+# PRIMARY channel-matching mechanism (Aug 18, 2026 rebuild) - matches on
+# scheduled_event.event_type, per the requirements doc's own stated
+# intent ("event_type: This will help you identify the marketing
+# campaigns events"), NOT tracking.utm_campaign. utm_campaign was the
+# original approach this project built first; it turned out to be broken
+# in practice (391/407 real bookings null, the remaining 16 contain IP
+# addresses, not channel names - see Section 18, Item 8 of the design
+# doc) AND was never actually the mechanism the brief specified.
+#
+# The three event_type IDs given in the requirements doc were checked
+# directly against real, current booking data and found to be STALE for
+# two of three channels - Calendly assigns a new UUID whenever an event
+# type is deleted and recreated, and nothing in the webhook payload
+# indicates that drift happened:
+#   - youtube_paid_ads: doc's reference ID CONFIRMED correct against real
+#     data (6 real bookings, "Info Session (YT)").
+#   - facebook_paid_ads: doc's reference ID matches only 1 historical
+#     booking (almost certainly the doc's own original sample event,
+#     still present in the data) - NOT what real, current Facebook
+#     bookings actually use. Three different, currently-active event
+#     type IDs were found in real data with "FB" in the meeting name.
+#   - tiktok_paid_ads: doc's reference ID matches ZERO real bookings.
+#     Two different, currently-active event type IDs were found with
+#     "TC" in the meeting name instead.
+#
+# This map is therefore built from real, current, verified data - not
+# solely the (partially stale) requirements doc. The doc's original
+# three reference IDs are kept in the map too (harmless if never used
+# again; correct if they ever are).
+EVENT_TYPE_CHANNEL_MAP = {
+    # Facebook - real, currently-active event types (verified Aug 18, 2026)
+    "13b9e08f-19d6-4632-99c5-4b213dbc335f": "facebook_paid_ads",  # "Breakthrough Session FB D2C"
+    "91e2e844-449d-41a5-b54a-1446d91abdcc": "facebook_paid_ads",  # "Info Session (FB FT/V)"
+    "cbb0d033-c0e9-4cc1-998c-87b224561a33": "facebook_paid_ads",  # "Info Session FB Multi Opt FT/V"
+    "d639ecd3-8718-4068-955a-436b10d72c78": "facebook_paid_ads",  # requirements doc's original reference - stale but kept
+    # YouTube - doc's reference confirmed correct against real data
+    "dbb4ec50-38cd-4bcd-bbff-efb7b5a6f098": "youtube_paid_ads",  # "Info Session (YT)"
+    # TikTok - real, currently-active event types (verified Aug 18, 2026)
+    "789dcd61-4362-4ecf-a99a-553853075620": "tiktok_paid_ads",  # "Breakthrough Session TC AN"
+    "79a72e89-978b-493c-84ba-9c0db9fd8435": "tiktok_paid_ads",  # "Breakthrough Session (TC)"
+    "bb339e98-7a67-4af2-b584-8dbf95564312": "tiktok_paid_ads",  # requirements doc's original reference - unused in real data so far, kept
+}
+
 
 def _get_job_param(name: str, default: str = None) -> str:
     """Glue Python Shell jobs receive parameters as --KEY value command-line
@@ -80,11 +123,17 @@ def _read_json(bucket: str, key: str):
     return json.loads(response["Body"].read().decode("utf-8"))
 
 
-def _extract_channel(payload: dict) -> str:
-    """Mirrors calendly_webhook_handler's _extract_channel - re-derived
-    here rather than trusted from upstream, since raw/ is the actual
-    source of truth and transform logic shouldn't assume the ingestion
-    Lambda's filtering never changes."""
+def _extract_channel(payload: dict, event_type_id: str = None) -> str:
+    """PRIMARY: match event_type_id against EVENT_TYPE_CHANNEL_MAP - see
+    the map's own comment for why this replaced tracking.utm_campaign as
+    the authoritative mechanism. FALLBACK: the original utm_campaign/
+    Q&A-based checks are kept for defense-in-depth even though real data
+    has shown utm_campaign is populated with IP addresses, not channel
+    names, on every real booking checked so far - costs nothing to leave
+    in case that ever changes upstream."""
+    if event_type_id and event_type_id in EVENT_TYPE_CHANNEL_MAP:
+        return EVENT_TYPE_CHANNEL_MAP[event_type_id]
+
     tracking = payload.get("tracking", {}) or {}
     for field in ("utm_campaign", "utm_source"):
         value = tracking.get(field)
@@ -124,15 +173,16 @@ def _flatten_booking_event(event_body: dict, source_key: str) -> dict:
     memberships = scheduled_event.get("event_memberships", []) or []
     first_host = memberships[0] if memberships else {}
     event_type_url = scheduled_event.get("event_type")
+    event_type_id = _event_type_id_from_url(event_type_url)
 
     return {
         "booking_id": _booking_id_from_uri(payload.get("uri")),
         "invitee_name": payload.get("name"),
         "invitee_email": payload.get("email"),
-        "channel": _extract_channel(payload),
+        "channel": _extract_channel(payload, event_type_id),
         "campaign_raw": (payload.get("tracking", {}) or {}).get("utm_campaign"),
         "event_type_url": event_type_url,
-        "event_type_id": _event_type_id_from_url(event_type_url),
+        "event_type_id": event_type_id,
         "booked_at": payload.get("created_at"),
         "meeting_name": scheduled_event.get("name"),
         "meeting_start_time": scheduled_event.get("start_time"),
