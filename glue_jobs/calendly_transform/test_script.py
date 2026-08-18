@@ -73,7 +73,60 @@ def test_flatten_real_sample_booking_event():
     assert row["employee_name"] == "Zan Strmec"
     assert row["timezone"] == "Asia/Calcutta"
     assert row["rescheduled"] is False
+    assert row["event_type_url"] is None  # doc's own sample has no event_type field - graceful None, not a crash
+    assert row["event_type_id"] is None
     print("PASS: real sample booking payload flattens correctly")
+
+
+# Real payload from a live booking (Aug 14, 2026), named "Data Engineer
+# Academy Info Session (FB FT/V)" - meeting NAME suggests Facebook, but
+# the real event_type UUID does NOT match the requirements doc's
+# documented facebook_paid_ads reference
+# (https://api.calendly.com/event_types/d639ecd3-8718-4068-955a-436b10d72c78).
+# This is the actual finding that justified adding event_type extraction
+# at all: tracking.utm_campaign was never the real join key per the
+# brief's own instructions (event_type is), but even event_type's
+# documented reference values appear to be stale against what's live in
+# the real Calendly organization now.
+REAL_FB_NAMED_BOOKING_EVENT = {
+    "event": "invitee.created",
+    "payload": {
+        "created_at": "2026-08-14T22:18:35.347661Z",
+        "email": "heffernan.matthewryan@gmail.com",
+        "name": "Matthew Heffernan",
+        "questions_and_answers": [{"answer": "+1 845-706-6565", "position": 0, "question": "What is your phone number?"}],
+        "rescheduled": False,
+        "scheduled_event": {
+            "created_at": "2026-08-14T22:18:35.332603Z",
+            "end_time": "2026-08-15T19:15:00.000000Z",
+            "event_memberships": [
+                {"user": "https://api.calendly.com/users/e0087468-a8be-4743-9012-8c47a61d9669",
+                 "user_email": "chrisblanchette@dataengineeracademy.com", "user_name": "Chris Blanchette"}
+            ],
+            "event_type": "https://api.calendly.com/event_types/91e2e844-449d-41a5-b54a-1446d91abdcc",
+            "name": "Data Engineer Academy Info Session (FB FT/V) ",
+            "start_time": "2026-08-15T19:00:00.000000Z",
+            "status": "active",
+            "uri": "https://api.calendly.com/scheduled_events/2e8d9b0a-c16d-484c-bb5d-f76ace62dbb3",
+        },
+        "status": "active",
+        "timezone": "America/New_York",
+        "tracking": {"utm_campaign": None, "utm_source": None, "utm_medium": None, "utm_content": None, "utm_term": None},
+        "uri": "https://api.calendly.com/scheduled_events/2e8d9b0a-c16d-484c-bb5d-f76ace62dbb3/invitees/d55acb9a-4810-41d2-ad45-358eb1c2f1bf",
+    },
+}
+
+
+def test_event_type_extracted_from_real_fb_named_booking():
+    row = sc._flatten_booking_event(REAL_FB_NAMED_BOOKING_EVENT, "raw/calendly_webhook_events/dt=2026-08-14/x.json")
+
+    assert row["event_type_url"] == "https://api.calendly.com/event_types/91e2e844-449d-41a5-b54a-1446d91abdcc"
+    assert row["event_type_id"] == "91e2e844-449d-41a5-b54a-1446d91abdcc"
+    # channel comes back None here - tracking.utm_campaign is null on this
+    # real booking, same as the vast majority of real traffic. event_type
+    # is captured regardless, independent of the broken utm_campaign path.
+    assert row["channel"] is None
+    print("PASS: event_type correctly extracted from a real booking, independent of the broken utm_campaign field")
 
 
 def test_flatten_spend_records():
@@ -199,6 +252,7 @@ def test_all_null_channel_column_still_typed_as_string(mock_s3):
 
 if __name__ == "__main__":
     test_flatten_real_sample_booking_event()
+    test_event_type_extracted_from_real_fb_named_booking()
     test_flatten_spend_records()
     test_booking_id_from_uri()
     test_transform_bookings_reads_all_pages_and_types_dates()
