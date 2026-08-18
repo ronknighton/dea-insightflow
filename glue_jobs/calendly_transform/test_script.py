@@ -210,6 +210,78 @@ def test_transform_bookings_reads_all_pages_and_types_dates(mock_s3):
 
 
 @patch.object(sc, "s3_client")
+def test_transform_spend_deduplicates_overlapping_daily_files(mock_s3):
+    """
+    Regression test for a real production bug (Aug 18, 2026): each daily
+    spend file covers a rolling ~30-day window, and this job reads every
+    raw file on every run - so the SAME (channel, date) fact appears in
+    every overlapping file, inflating every marts-layer join against
+    calendly_bookings. Confirmed directly against real data: up to 8x
+    duplication for the same channel+date. Two files below both report
+    facebook_paid_ads on 2026-08-01 with the SAME spend value (655.00) -
+    simulating two overlapping daily pulls - and the result must show
+    exactly one row for that pair, not two.
+    """
+    mock_paginator = MagicMock()
+    mock_paginator.paginate.return_value = [
+        {"Contents": [
+            {"Key": "raw/calendly_spend/dt=2026-08-01/spend_data_2026-08-01.json"},
+            {"Key": "raw/calendly_spend/dt=2026-08-02/spend_data_2026-08-01.json"},  # same date, pulled again next day
+        ]}
+    ]
+    mock_s3.get_paginator.return_value = mock_paginator
+
+    file_a = [{"date": "2026-08-01", "channel": "facebook_paid_ads", "spend": 655.00}]
+    file_b = [{"date": "2026-08-01", "channel": "facebook_paid_ads", "spend": 655.00}]  # same fact, re-included
+
+    def get_object_side_effect(Bucket, Key):
+        content = file_a if "dt=2026-08-01" in Key else file_b
+        return {"Body": MagicMock(read=lambda c=content: json.dumps(c).encode("utf-8"))}
+
+    mock_s3.get_object.side_effect = get_object_side_effect
+
+    df = sc.transform_spend("test-bucket")
+
+    assert len(df) == 1  # NOT 2 - the duplicate was correctly removed
+    assert df.iloc[0]["spend"] == 655.00
+    print("PASS: duplicate (channel, date) spend rows from overlapping files are deduplicated to one")
+
+
+@patch.object(sc, "s3_client")
+def test_transform_spend_warns_on_conflicting_duplicate_values(mock_s3, caplog):
+    """If two 'duplicate' rows for the same (channel, date) actually
+    report DIFFERENT spend amounts, that's not redundant overlap - it's
+    either a real revision or a data quality problem, and silently
+    keeping 'first' would hide it. Must log a warning, not process
+    silently."""
+    import logging
+    mock_paginator = MagicMock()
+    mock_paginator.paginate.return_value = [
+        {"Contents": [
+            {"Key": "raw/calendly_spend/dt=2026-08-01/a.json"},
+            {"Key": "raw/calendly_spend/dt=2026-08-02/b.json"},
+        ]}
+    ]
+    mock_s3.get_paginator.return_value = mock_paginator
+
+    file_a = [{"date": "2026-08-01", "channel": "facebook_paid_ads", "spend": 655.00}]
+    file_b = [{"date": "2026-08-01", "channel": "facebook_paid_ads", "spend": 999.00}]  # different value!
+
+    def get_object_side_effect(Bucket, Key):
+        content = file_a if "a.json" in Key else file_b
+        return {"Body": MagicMock(read=lambda c=content: json.dumps(c).encode("utf-8"))}
+
+    mock_s3.get_object.side_effect = get_object_side_effect
+
+    with caplog.at_level(logging.WARNING):
+        df = sc.transform_spend("test-bucket")
+
+    assert len(df) == 1  # still deduplicates down to one row
+    assert any("differing spend values" in record.message.lower() for record in caplog.records)
+    print("PASS: conflicting duplicate spend values trigger a warning, not silent data loss")
+
+
+@patch.object(sc, "s3_client")
 def test_transform_bookings_skips_unreadable_file_without_failing_the_run(mock_s3):
     """One malformed raw file must not abort the whole transform - matches
     the fault-isolation pattern used throughout this project's Lambdas."""
@@ -295,6 +367,8 @@ if __name__ == "__main__":
     test_event_type_channel_map_covers_all_real_confirmed_ids()
     test_unmapped_event_type_falls_through_to_none()
     test_flatten_spend_records()
+    test_transform_spend_deduplicates_overlapping_daily_files()
+    test_transform_spend_warns_on_conflicting_duplicate_values()
     test_booking_id_from_uri()
     test_transform_bookings_reads_all_pages_and_types_dates()
     test_transform_bookings_skips_unreadable_file_without_failing_the_run()
